@@ -1,16 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Plus, Minus, SearchIcon, LoaderPinwheelIcon } from "lucide-react";
 import LazyLoad from "react-lazyload";
-import { useZustandContext } from "../../Contexts/cartContext";
-
-interface Product {
-  id: string;
-  nome: string;
-  preco: number;
-  quantidade: number;
-  imagem?: string;
-  disponivel: boolean;
-}
+import { Product, useZustandContext } from "../../Contexts/cartContext";
 
 const Uniforms: React.FC = () => {
   const {
@@ -137,9 +128,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
       </div>
-      <h3 className="text-sm font-semibold text-gray-900 truncate">
-        {product.nome}
-      </h3>
+      <h3 className="text-sm font-semibold text-gray-900 ">{product.nome}</h3>
+      <span>
+        {product.variacao?.map((variacao) => (
+          <span key={variacao.id}>{variacao.nomeVariacaoA}||</span>
+        ))}
+      </span>
       <p className="text-lg font-bold text-green-600">
         {product.preco.toLocaleString("pt-BR", {
           style: "currency",

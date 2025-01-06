@@ -14,6 +14,13 @@ export interface Product {
   quantidade: number;
   id_seq?: number;
   disponivel: boolean;
+  variacao?: Variacao[];
+}
+
+export interface Variacao {
+  id: string;
+  nomeVariacaoA: string;
+  nomeVariacaoB: string | null;
 }
 
 interface ContextStates {
@@ -71,15 +78,19 @@ export const useZustandContext = create<ContextStates>((set) => ({
   setProducts: async (category?: string) => {
     try {
       console.log(
-        `Requisitando produtos de ${category || "todas as categorias"}...`
+        `Requisitando produtos da categoria '${
+          category || "todas as categorias"
+        }'...`
       );
       const response = await axios.get(
-        `${apiBaseUrl}/produtos?categoria=${category}`,
-        {}
+        `${apiBaseUrl}/products?categoria=UNIFORME`,
+        {
+          headers: {},
+        }
       );
-
+      console.log(response.data.filteredProducts);
       let initialIdSeq = 0;
-      const updateProductsList = response.data.products.map(
+      const updateProductsList = response.data.filteredProducts.map(
         (product: Product) => ({
           ...product,
           quantidade: 0,
