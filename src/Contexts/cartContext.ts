@@ -31,8 +31,10 @@ interface ContextStates {
   products: Product[];
   countItemsInCart: number;
   listProductsInCart: Product[];
+  buyLimit: boolean;
   isMobile: boolean;
   variationSelectedList: string[];
+  setBuyLimit: () => void;
   setIsMobile: (type: boolean) => void;
   setProducts: (category?: string) => void;
   clearListProductsInCart: (list: Product[]) => void;
@@ -52,8 +54,18 @@ export const useZustandContext = create<ContextStates>((set) => ({
   totalValue: 0,
   isMobile: false,
   variationSelectedList: [],
-
+  buyLimit: false,
   setIsMobile: () => set({ isMobile: true }),
+  setBuyLimit: () =>
+    set((state) => {
+      const { totalValue } = state;
+
+      const limit = totalValue <= 250;
+
+      return {
+        buyLimit: limit,
+      };
+    }),
 
   clearListProductsInCart: () =>
     set(() => {
@@ -65,16 +77,16 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
   setTotalValue: () =>
     set((state) => {
-      const totalValue = state.listProductsInCart.reduce((acc, product) => {
+      const total = state.listProductsInCart.reduce((acc, product) => {
         if (product.preco) {
           acc += product.preco * product.quantidade;
           return acc;
         }
         return acc;
       }, 0);
-
       return {
-        totalValue: totalValue,
+        totalValue: total,
+        buyLimit: false,
       };
     }),
 

@@ -10,6 +10,7 @@ const Uniforms: React.FC = () => {
     products,
     loading,
     setProducts,
+    buyLimit,
   } = useZustandContext();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,8 +39,19 @@ const Uniforms: React.FC = () => {
     []
   );
 
+  console.log("buyLimit: ", buyLimit);
+
   return (
     <div className="p-4 bg-gray-50 h-screen overflow-y-auto mt-[6rem]">
+      {buyLimit && (
+        <div className="flex justify-center border-2 border-red-600">
+          {" "}
+          <h1 className="text-2xl font-bold mb-3">
+            O Limite de compra de R$250,00 foi atingido, porfavor finalize a
+            compra
+          </h1>
+        </div>
+      )}
       <div className="flex justify-center">
         <h1 className="text-2xl font-bold mb-3">Uniformes</h1>
       </div>
@@ -96,6 +108,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   handleAddItemInList,
   handleRemoveItemFromCart,
 }) => {
+  const { buyLimit } = useZustandContext();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVariation, setSelectedVariation] = useState<string | null>(
     null
@@ -173,6 +186,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </button>
           <span className="text-sm font-medium">{product.quantidade}</span>
           <button
+            disabled={buyLimit}
             onClick={() => handleAddItemInList(product, selectedVariation)}
             className="w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full text-white"
           >

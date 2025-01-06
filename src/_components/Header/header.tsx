@@ -17,11 +17,20 @@ import Sidebar from "../Sidebar/sidebar";
 
 const Header: React.FC = () => {
   // const [userName, setUserName] = useState<string | null>(null);
-  const { countItemsInCart, listProductsInCart } = useZustandContext();
+  const {
+    countItemsInCart,
+    listProductsInCart,
+    totalValue,
+    setTotalValue,
+    setBuyLimit,
+  } = useZustandContext();
 
   useEffect(() => {
+    setTotalValue();
+    setBuyLimit();
     console.log("Contando os itens no carrinho: ", countItemsInCart);
-  }, [countItemsInCart]);
+    console.log("Valor total do carrinho R$ 250,00 => ", totalValue);
+  }, [listProductsInCart]);
 
   useEffect(() => {}, [countItemsInCart]);
 
@@ -38,6 +47,10 @@ const Header: React.FC = () => {
         <Sheet>
           <SheetTrigger>
             <div className="flex items-center">
+              {totalValue.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
               <ShoppingCart
                 className="text-gray-800 relative left-3"
                 size={32}
