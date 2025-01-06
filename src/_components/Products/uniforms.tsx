@@ -16,12 +16,10 @@ const Uniforms: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
 
   useEffect(() => {
-    // Filtra apenas produtos da categoria "Uniformes"
     setProducts("uniformes");
   }, [setProducts]);
 
   useEffect(() => {
-    // Atualiza a lista de produtos filtrados com base no termo de pesquisa
     if (searchTerm === "") {
       setFilteredProducts(products);
     } else {
@@ -42,8 +40,7 @@ const Uniforms: React.FC = () => {
 
   return (
     <div className="p-4 bg-gray-50 h-screen overflow-y-auto mt-[6rem]">
-      {/* Campo de pesquisa */}
-      <div className=" flex justify-center">
+      <div className="flex justify-center">
         <h1 className="text-2xl font-bold mb-3">Uniformes</h1>
       </div>
       <div className="mb-4 flex items-center border rounded-lg">
@@ -90,7 +87,7 @@ const LoadingSkeleton: React.FC = () => (
 
 interface ProductCardProps {
   product: Product;
-  handleAddItemInList: (product: Product) => void;
+  handleAddItemInList: (product: Product, variation: string) => void;
   handleRemoveItemFromCart: (id: string) => void;
 }
 
@@ -100,9 +97,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
   handleRemoveItemFromCart,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedVariation, setSelectedVariation] = useState<string | null>(
+    null
+  );
 
   const handleImageLoad = () => {
     setIsLoading(false);
+  };
+
+  const handleVariationSelect = (variation: string) => {
+    console.log("variationId: ", variation);
+    setSelectedVariation(variation);
   };
 
   return (
@@ -128,33 +133,53 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
       </div>
-      <h3 className="text-sm font-semibold text-gray-900 ">{product.nome}</h3>
-      <span>
+      <h3 className="text-sm font-semibold text-gray-900">{product.nome}</h3>
+
+      {/* Variações  */}
+      <div className="flex flex-wrap gap-2 mt-2">
         {product.variacao?.map((variacao) => (
-          <span key={variacao.id}>{variacao.nomeVariacaoA}||</span>
+          <span
+            key={variacao.id}
+            onClick={() => handleVariationSelect(variacao.nomeVariacaoA)} // Seleciona a variação
+            className={`px-4 py-1 rounded-lg cursor-pointer text-sm font-medium
+              transition-all duration-300 ease-in-out
+              ${
+                selectedVariation === variacao.nomeVariacaoA
+                  ? "bg-yellow-500 text-white shadow-lg"
+                  : "bg-gray-200 text-gray-700 hover:bg-yellow-100"
+              }
+              hover:scale-105`}
+          >
+            {variacao.nomeVariacaoA}
+          </span>
         ))}
-      </span>
-      <p className="text-lg font-bold text-green-600">
+      </div>
+
+      <p className="text-lg font-bold text-green-600 mt-3">
         {product.preco.toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
         })}
       </p>
-      <div className="flex items-center justify-between gap-2 mt-3">
-        <button
-          onClick={() => handleRemoveItemFromCart(product.id)}
-          className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600"
-        >
-          <Minus className="w-4 h-4" />
-        </button>
-        <span className="text-sm font-medium">{product.quantidade}</span>
-        <button
-          onClick={() => handleAddItemInList(product)}
-          className="w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full text-white"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
+
+      {/* Controle de estoque e quantidade */}
+      {selectedVariation && (
+        <div className="flex items-center justify-between gap-2 mt-3">
+          <button
+            onClick={() => handleRemoveItemFromCart(product.id)}
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <span className="text-sm font-medium">{product.quantidade}</span>
+          <button
+            onClick={() => handleAddItemInList(product, selectedVariation)}
+            className="w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full text-white"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

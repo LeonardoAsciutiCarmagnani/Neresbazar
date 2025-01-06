@@ -15,6 +15,7 @@ export interface Product {
   id_seq?: number;
   disponivel: boolean;
   variacao?: Variacao[];
+  variantSelected?: string[];
 }
 
 export interface Variacao {
@@ -31,12 +32,13 @@ interface ContextStates {
   countItemsInCart: number;
   listProductsInCart: Product[];
   isMobile: boolean;
+  variationSelectedList: string[];
   setIsMobile: (type: boolean) => void;
   setProducts: (category?: string) => void;
   clearListProductsInCart: (list: Product[]) => void;
   setTotalValue: () => void;
   setCountItemsInCart: (count: number) => void;
-  handleAddItemInList: (newProduct: Product) => void;
+  handleAddItemInList: (newProduct: Product, variation: string) => void;
   handleRemoveItemFromCart: (productId: string) => void;
 }
 
@@ -49,6 +51,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
   products: [],
   totalValue: 0,
   isMobile: false,
+  variationSelectedList: [],
 
   setIsMobile: () => set({ isMobile: true }),
 
@@ -76,6 +79,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
     }),
 
   setProducts: async (category?: string) => {
+    const itensInArray: Product[] = [];
     try {
       console.log(
         `Requisitando produtos da categoria '${
@@ -88,23 +92,40 @@ export const useZustandContext = create<ContextStates>((set) => ({
           headers: {},
         }
       );
-      console.log(response.data.filteredProducts);
+      const data = response.data.filteredProducts;
       let initialIdSeq = 0;
-      const updateProductsList = response.data.filteredProducts.map(
-        (product: Product) => ({
+      /*    const updateProductsList = response.data.filteredProducts.map(
+        (product: Product) => {
+          return {
+            ...product,
+            quantidade: 0,
+            id_seq: (initialIdSeq += 1),
+          };
+        }
+      ); */
+      data.map((product: Product) => {
+        const validation = itensInArray.some(
+          (item) => item.codigo === product.codigo
+        );
+
+        if (validation) {
+          return;
+        }
+
+        itensInArray.push({
           ...product,
           quantidade: 0,
           id_seq: (initialIdSeq += 1),
-        })
-      );
+        });
+      });
+
+      console.log("itensInArray: ", itensInArray);
 
       set({
-        products: updateProductsList,
+        products: itensInArray,
         loading: false,
         error: null,
       });
-
-      console.log(updateProductsList);
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
       set({ loading: true, error: "Erro ao buscar produtos" });
@@ -113,10 +134,10 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
   setCountItemsInCart: (count: number) =>
     set(() => ({ countItemsInCart: count + 1 })),
-
-  handleAddItemInList: (newProduct) =>
+  handleAddItemInList: (newProduct, variation) =>
     set((state) => {
       const { id, nome, preco, imagem, categoria, disponivel } = newProduct;
+      console.log("Variação selecionada: ", variation);
 
       const existingProductIndex = state.listProductsInCart.findIndex(
         (product) => product.id === id
@@ -129,6 +150,10 @@ export const useZustandContext = create<ContextStates>((set) => ({
         updateList[existingProductIndex] = {
           ...updateList[existingProductIndex],
           quantidade: updateList[existingProductIndex].quantidade + 1,
+          variantSelected: [
+            ...(updateList[existingProductIndex].variantSelected || []),
+            variation,
+          ],
         };
       } else {
         updateList.push({
@@ -139,6 +164,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
           quantidade: 1,
           imagem,
           disponivel,
+          variantSelected: [variation],
         });
       }
 
