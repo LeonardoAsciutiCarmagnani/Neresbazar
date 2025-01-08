@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Plus, Minus, SearchIcon, LoaderPinwheelIcon } from "lucide-react";
-import LazyLoad from "react-lazyload";
 import { Product, useZustandContext } from "../../Contexts/cartContext";
+import OptimizedProductImage from "../ImageComponent/imagecomponent";
 
 const Uniforms: React.FC = () => {
   const {
@@ -17,7 +17,7 @@ const Uniforms: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
 
   useEffect(() => {
-    setProducts("uniformes");
+    setProducts("UNIFORME");
   }, [setProducts]);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const Uniforms: React.FC = () => {
   console.log("buyLimit: ", buyLimit);
 
   return (
-    <div className="p-4 bg-gray-50 h-screen overflow-y-auto mt-[6rem]">
+    <div className="p-4 bg-gray-50 h-screen mt-[6rem]">
       {buyLimit && (
         <div className="flex justify-center border-2 border-red-600">
           {" "}
@@ -109,14 +109,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
   handleRemoveItemFromCart,
 }) => {
   const { buyLimit } = useZustandContext();
+
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVariation, setSelectedVariation] = useState<string | null>(
     null
   );
-
-  const handleImageLoad = () => {
-    setIsLoading(false);
-  };
 
   const handleVariationSelect = (variation: string) => {
     console.log("variationId: ", variation);
@@ -132,14 +129,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
         {product.imagem ? (
-          <LazyLoad height={200} offset={100} once>
-            <img
-              src={product.imagem}
-              alt={product.nome}
-              onLoad={handleImageLoad}
-              className="w-full h-28 sm:h-32 object-cover rounded-lg"
-            />
-          </LazyLoad>
+          <OptimizedProductImage
+            src={product.imagem}
+            alt={product.nome}
+            className="hover:opacity-90"
+            onLoadComplete={() => setIsLoading(false)}
+            height="lg"
+          />
         ) : (
           <div className="w-full h-28 sm:h-32 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500">
             Sem imagem
@@ -188,7 +184,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <button
             disabled={buyLimit}
             onClick={() => handleAddItemInList(product, selectedVariation)}
-            className="w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full text-white"
+            className="w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full text-white flex items-center justify-center"
           >
             <Plus className="w-4 h-4" />
           </button>

@@ -4,7 +4,7 @@ import {
   HomeIcon,
   LogOutIcon,
   MenuIcon,
-  PackageIcon,
+  // PackageIcon,
   PackagePlusIcon,
   ReceiptIcon,
   UserIcon,
@@ -116,7 +116,7 @@ export default function Sidebar() {
               </li>
             )}
 
-            <li>
+            {/* <li>
               <Link
                 to={
                   typeUser === "cliente" ? "/get-orders-client" : "/get-orders"
@@ -127,7 +127,7 @@ export default function Sidebar() {
                   <PackageIcon className="text-[#f06139]" size={24} /> Pedidos
                 </span>
               </Link>
-            </li>
+            </li> */}
             {typeUser === "adm" && (
               <>
                 <li>
