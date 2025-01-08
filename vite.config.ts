@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
+import path from "path";
 
 export default defineConfig({
   plugins: [
@@ -14,6 +15,11 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   build: {
     target: "es2015", // ou 'esnext' se você não precisa suportar navegadores mais antigos
     minify: "terser", // Usar Terser para minificação mais agressiva
