@@ -21,6 +21,7 @@ const Header: React.FC = () => {
     countItemsInCart,
     listProductsInCart,
     totalValue,
+    buyLimit,
     setTotalValue,
     setBuyLimit,
   } = useZustandContext();
@@ -28,9 +29,10 @@ const Header: React.FC = () => {
   useEffect(() => {
     setTotalValue();
     setBuyLimit();
-    console.log("Contando os itens no carrinho: ", countItemsInCart);
-    console.log("Valor total do carrinho R$ 250,00 => ", totalValue);
-  }, [listProductsInCart]);
+    console.log(buyLimit);
+    // console.log("Contando os itens no carrinho: ", countItemsInCart);
+    // console.log("Valor total do carrinho R$ 250,00 => ", totalValue);
+  }, [buyLimit, listProductsInCart, setBuyLimit, setTotalValue]);
 
   useEffect(() => {}, [countItemsInCart]);
 

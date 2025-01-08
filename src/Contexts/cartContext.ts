@@ -79,13 +79,14 @@ export const useZustandContext = create<ContextStates>((set) => ({
   setProducts: async (category?: string) => {
     const itensInArray: Product[] = [];
     try {
+      set({ loading: true });
       console.log(
         `Requisitando produtos da categoria '${
           category || "todas as categorias"
         }'...`
       );
       const response = await axios.get(
-        `${apiBaseUrl}/products?categoria=UNIFORME`,
+        `${apiBaseUrl}/products?categoria=${category}`,
         {
           headers: {},
         }
@@ -108,12 +109,13 @@ export const useZustandContext = create<ContextStates>((set) => ({
           id_seq: (initialIdSeq += 1),
         });
       });
-
       set({
         products: itensInArray,
-        loading: false,
         error: null,
       });
+      setTimeout(() => {
+        set({ loading: false });
+      }, 300);
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
       set({ loading: true, error: "Erro ao buscar produtos" });
