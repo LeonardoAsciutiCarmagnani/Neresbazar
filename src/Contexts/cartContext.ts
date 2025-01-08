@@ -1,7 +1,6 @@
 import apiBaseUrl from "../lib/apiConfig";
 import axios from "axios";
 import { create } from "zustand";
-// import { useAuthStore } from "./authStore";
 
 export interface Product {
   ativo?: boolean;
@@ -35,10 +34,10 @@ interface ContextStates {
   isMobile: boolean;
   variationSelectedList: string[];
   setBuyLimit: () => void;
+  setTotalValue: () => void;
   setIsMobile: (type: boolean) => void;
   setProducts: (category?: string) => void;
   clearListProductsInCart: (list: Product[]) => void;
-  setTotalValue: () => void;
   setCountItemsInCart: (count: number) => void;
   handleAddItemInList: (newProduct: Product, variation: string) => void;
   handleRemoveItemFromCart: (productId: string) => void;
@@ -58,12 +57,14 @@ export const useZustandContext = create<ContextStates>((set) => ({
   setIsMobile: () => set({ isMobile: true }),
   setBuyLimit: () =>
     set((state) => {
-      const { totalValue } = state;
-
-      const limit = totalValue <= 250;
-
+      let currentState: boolean;
+      if (state.totalValue < 250) {
+        currentState = false;
+      } else {
+        currentState = true;
+      }
       return {
-        buyLimit: limit,
+        buyLimit: currentState,
       };
     }),
 
@@ -72,21 +73,6 @@ export const useZustandContext = create<ContextStates>((set) => ({
       return {
         listProductsInCart: [],
         countItemsInCart: 0,
-      };
-    }),
-
-  setTotalValue: () =>
-    set((state) => {
-      const total = state.listProductsInCart.reduce((acc, product) => {
-        if (product.preco) {
-          acc += product.preco * product.quantidade;
-          return acc;
-        }
-        return acc;
-      }, 0);
-      return {
-        totalValue: total,
-        buyLimit: false,
       };
     }),
 
@@ -106,15 +92,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
       );
       const data = response.data.filteredProducts;
       let initialIdSeq = 0;
-      /*    const updateProductsList = response.data.filteredProducts.map(
-        (product: Product) => {
-          return {
-            ...product,
-            quantidade: 0,
-            id_seq: (initialIdSeq += 1),
-          };
-        }
-      ); */
+
       data.map((product: Product) => {
         const validation = itensInArray.some(
           (item) => item.codigo === product.codigo
@@ -131,8 +109,6 @@ export const useZustandContext = create<ContextStates>((set) => ({
         });
       });
 
-      console.log("itensInArray: ", itensInArray);
-
       set({
         products: itensInArray,
         loading: false,
@@ -146,10 +122,24 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
   setCountItemsInCart: (count: number) =>
     set(() => ({ countItemsInCart: count + 1 })),
+  setTotalValue: () =>
+    set((state) => {
+      const currentTotalValue = state.listProductsInCart.reduce(
+        (acc, product) => {
+          if (product.preco) {
+            acc += product.preco * product.quantidade;
+          }
+
+          return acc;
+        },
+        0
+      );
+      return { totalValue: currentTotalValue };
+    }),
+
   handleAddItemInList: (newProduct, variation) =>
     set((state) => {
       const { id, nome, preco, imagem, categoria, disponivel } = newProduct;
-      console.log("Variação selecionada: ", variation);
 
       const existingProductIndex = state.listProductsInCart.findIndex(
         (product) => product.id === id
@@ -157,6 +147,16 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
       const updateList = [...state.listProductsInCart];
       let updateCountInCart = state.countItemsInCart;
+
+      let updateProducts = state.products;
+
+      const additionalValue = existingProductIndex !== -1 ? preco : preco * 1;
+
+      if (state.totalValue + additionalValue > 250) {
+        console.log("Limite de valor alcançado. Produto não adicionado.");
+        state.setBuyLimit();
+        return {};
+      }
 
       if (existingProductIndex !== -1) {
         updateList[existingProductIndex] = {
@@ -180,18 +180,31 @@ export const useZustandContext = create<ContextStates>((set) => ({
         });
       }
 
-      const updateProducts = state.products.map((product) =>
+      updateCountInCart += 1;
+
+      updateProducts = state.products.map((product) =>
         product.id === id
           ? { ...product, quantidade: product.quantidade + 1 }
           : product
       );
 
-      updateCountInCart += 1;
-      console.log(updateList);
+      const currentTotalValue = updateList.reduce((acc, product) => {
+        if (product.preco) {
+          acc += product.preco * product.quantidade;
+        }
+        return acc;
+      }, 0);
+
+      console.log(
+        "Produto adicionado. Valor total atualizado:",
+        currentTotalValue
+      );
+
       return {
         listProductsInCart: updateList,
         products: updateProducts,
         countItemsInCart: updateCountInCart,
+        totalValue: currentTotalValue,
       };
     }),
 
@@ -230,6 +243,16 @@ export const useZustandContext = create<ContextStates>((set) => ({
           return product;
         }
       });
+
+      /* const currentValue = newList.reduce((acc, product) => {
+        acc += product.preco * product.quantidade;
+
+        return acc;
+      }, 0);
+ */
+      /*   if (currentValue < 250) {
+        state.setBuyLimit();
+      } */
 
       return {
         listProductsInCart: newList,

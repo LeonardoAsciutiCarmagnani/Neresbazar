@@ -39,7 +39,9 @@ const Uniforms: React.FC = () => {
     []
   );
 
-  console.log("buyLimit: ", buyLimit);
+  useEffect(() => {
+    console.log("buyLimit em uniforms: ", buyLimit);
+  }, [buyLimit]);
 
   return (
     <div className="p-4 bg-gray-50 h-screen overflow-y-auto mt-[6rem]">
@@ -47,8 +49,8 @@ const Uniforms: React.FC = () => {
         <div className="flex justify-center border-2 border-red-600">
           {" "}
           <h1 className="text-2xl font-bold mb-3">
-            O Limite de compra de R$250,00 foi atingido, porfavor finalize a
-            compra
+            O Limite de compra de R$250,00 foi atingido, porfavor finalize sua
+            compra !
           </h1>
         </div>
       )}
