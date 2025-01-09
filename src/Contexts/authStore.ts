@@ -16,6 +16,8 @@ interface AuthUser {
 
 interface AuthState {
   user: AuthUser | null;
+  redirectToAuth: boolean;
+  setRedirectToAuth: () => void;
   setUser: (user: AuthUser | null) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -29,6 +31,11 @@ const storedUser = localStorage.getItem("loggedUser");
 export const useAuthStore = create<AuthState>((set) => ({
   user: storedUser ? JSON.parse(storedUser) : null,
   isCreatingUser: false,
+  redirectToAuth: false,
+
+  setRedirectToAuth: () => {
+    set({ redirectToAuth: true });
+  },
 
   setIsCreatingUser: (isCreating) => {
     set({ isCreatingUser: isCreating });
@@ -58,7 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken,
     };
 
-    set({ user });
+    set({ user, redirectToAuth: false });
     localStorage.setItem("loggedUser", JSON.stringify(user));
   },
 

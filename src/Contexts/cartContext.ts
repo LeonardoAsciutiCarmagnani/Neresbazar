@@ -14,7 +14,7 @@ export interface Product {
   id_seq?: number;
   disponivel: boolean;
   variacao?: Variacao[];
-  variantSelected?: string[];
+  variantSelected: string[] | null;
 }
 
 export interface Variacao {
@@ -32,14 +32,15 @@ interface ContextStates {
   listProductsInCart: Product[];
   buyLimit: boolean;
   isMobile: boolean;
-  variationSelectedList: string[];
+  variationSelectedList: string[] | null;
+  pageURL: string;
   setBuyLimit: () => void;
   setTotalValue: () => void;
   setIsMobile: (type: boolean) => void;
   setProducts: (category?: string) => void;
   clearListProductsInCart: (list: Product[]) => void;
   setCountItemsInCart: (count: number) => void;
-  handleAddItemInList: (newProduct: Product, variation: string) => void;
+  handleAddItemInList: (newProduct: Product, variation: string | null) => void;
   handleRemoveItemFromCart: (productId: string) => void;
 }
 
@@ -54,6 +55,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
   isMobile: false,
   variationSelectedList: [],
   buyLimit: false,
+  pageURL: "",
   setIsMobile: () => set({ isMobile: true }),
   setBuyLimit: () =>
     set((state) => {
@@ -160,14 +162,17 @@ export const useZustandContext = create<ContextStates>((set) => ({
         return {};
       }
 
+      console.log(variation);
       if (existingProductIndex !== -1) {
         updateList[existingProductIndex] = {
           ...updateList[existingProductIndex],
           quantidade: updateList[existingProductIndex].quantidade + 1,
-          variantSelected: [
-            ...(updateList[existingProductIndex].variantSelected || []),
-            variation,
-          ],
+          variantSelected: variation
+            ? [
+                ...(updateList[existingProductIndex].variantSelected || []),
+                variation,
+              ]
+            : [],
         };
       } else {
         updateList.push({
@@ -178,7 +183,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
           quantidade: 1,
           imagem,
           disponivel,
-          variantSelected: [variation],
+          variantSelected: variation ? [variation] : [],
         });
       }
 
@@ -201,6 +206,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
         "Produto adicionado. Valor total atualizado:",
         currentTotalValue
       );
+      console.log(updateList);
 
       return {
         listProductsInCart: updateList,

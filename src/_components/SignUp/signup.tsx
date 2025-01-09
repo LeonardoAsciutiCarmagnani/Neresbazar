@@ -36,8 +36,12 @@ const SignupForm = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toastError, toastSuccess } = ToastNotifications();
-
+  const { redirectToAuth } = useAuthStore();
   const { register, handleSubmit } = useForm<FormCreateUser>();
+
+  useEffect(() => {
+    console.log(redirectToAuth);
+  }, [redirectToAuth]);
 
   const handleCreateUser = async (data: FormCreateUser) => {
     const { setIsCreatingUser } = useAuthStore.getState();

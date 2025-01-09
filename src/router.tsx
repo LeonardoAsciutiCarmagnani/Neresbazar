@@ -8,11 +8,12 @@ import SchoolSuppliesPage from "./_components/LazyComponents/lazySchoolSupplies"
 import UniformsPage from "./_components/LazyComponents/lazyUniforms";
 import PageLoader from "./_components/Loader/PageLoader/loader";
 import Loader from "./_components/Loader/ImageLoader/loader";
+import { Checkout } from "./Pages/Checkout";
 
 export const router = createBrowserRouter(
   [
     {
-      path: "/signup",
+      path: "/register",
       element: (
         <Suspense
           fallback={
@@ -81,9 +82,21 @@ export const router = createBrowserRouter(
             </div>
           }
         >
-          <ProtectedRoute>
-            <UniformsPage />
-          </ProtectedRoute>
+          <UniformsPage />
+        </Suspense>
+      ),
+    },
+    {
+      path: "/checkout",
+      element: (
+        <Suspense
+          fallback={
+            <div>
+              <PageLoader />
+            </div>
+          }
+        >
+          <Checkout />
         </Suspense>
       ),
     },
@@ -123,9 +136,7 @@ export const router = createBrowserRouter(
       path: "/",
       element: (
         <Suspense fallback={<div>Carregando...</div>}>
-          <ProtectedRoute>
-            <SelectCategory />
-          </ProtectedRoute>
+          <SelectCategory />
         </Suspense>
       ),
     },

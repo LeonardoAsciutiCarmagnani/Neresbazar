@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 // import voidCart from "../assets/cart-xmark-svgrepo-com.svg";
 import { useZustandContext } from "../../Contexts/cartContext";
@@ -14,6 +14,7 @@ import {
 } from "../../components/ui/sheet";
 import logo from "../../assets/neresbazar_logo.svg";
 import Sidebar from "../Sidebar/sidebar";
+import { useAuthStore } from "@/Contexts/authStore";
 
 const Header: React.FC = () => {
   // const [userName, setUserName] = useState<string | null>(null);
@@ -21,20 +22,37 @@ const Header: React.FC = () => {
     countItemsInCart,
     listProductsInCart,
     totalValue,
-    buyLimit,
+    // buyLimit,
     setTotalValue,
     setBuyLimit,
   } = useZustandContext();
 
+  const { setRedirectToAuth } = useAuthStore();
+
   useEffect(() => {
     setTotalValue();
     setBuyLimit();
-    console.log(buyLimit);
     // console.log("Contando os itens no carrinho: ", countItemsInCart);
     // console.log("Valor total do carrinho R$ 250,00 => ", totalValue);
-  }, [buyLimit, listProductsInCart, setBuyLimit, setTotalValue]);
+  }, [listProductsInCart, setBuyLimit, setTotalValue]);
 
   useEffect(() => {}, [countItemsInCart]);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  async function handleNavigateToCheckoutPage() {
+    const userIsAutenticated = localStorage.getItem("loggedUser");
+
+    if (userIsAutenticated === null) {
+      setRedirectToAuth();
+      navigate("/register");
+    } else {
+      const currentPath = location.pathname;
+
+      navigate("/checkout", { state: { from: currentPath } });
+    }
+  }
 
   return (
     <header className="flex items-center justify-between p-4 bg-white shadow-md fixed top-0 w-full z-10">
@@ -125,11 +143,12 @@ const Header: React.FC = () => {
             )}
 
             {listProductsInCart.length > 0 ? (
-              <Link to="/buyList" className="mt-6">
-                <Button className="w-full py-2 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500">
-                  Pedido conferido!
-                </Button>
-              </Link>
+              <Button
+                onClick={() => handleNavigateToCheckoutPage()}
+                className="w-full py-2 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500"
+              >
+                Pedido conferido!
+              </Button>
             ) : (
               <Button
                 disabled
