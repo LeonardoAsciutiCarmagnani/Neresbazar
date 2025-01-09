@@ -12,7 +12,6 @@ const Uniforms: React.FC = () => {
     products,
     loading,
     setProducts,
-    buyLimit,
   } = useZustandContext();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,10 +39,6 @@ const Uniforms: React.FC = () => {
     },
     []
   );
-
-  useEffect(() => {
-    console.log("buyLimit em uniforms: ", buyLimit);
-  }, [buyLimit]);
 
   return (
     <div className="p-4 bg-gray-50 h-screen mt-[6rem]">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff, User, Mail, Lock, IdCardIcon } from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { useForm } from "react-hook-form";
@@ -28,8 +28,12 @@ const SignupForm = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toastError, toastSuccess } = ToastNotifications();
-
+  const { redirectToAuth } = useAuthStore();
   const { register, handleSubmit } = useForm<FormCreateUser>();
+
+  useEffect(() => {
+    console.log(redirectToAuth);
+  }, [redirectToAuth]);
 
   const handleCreateUser = async (data: FormCreateUser) => {
     const { setIsCreatingUser } = useAuthStore.getState();

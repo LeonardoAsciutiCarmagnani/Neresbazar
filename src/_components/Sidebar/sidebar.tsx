@@ -17,6 +17,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../../firebaseConfig";
 import ToastNotifications from "../Toasts/toasts";
 import useUserStore from "../../Contexts/UserStore";
+import { useZustandContext } from "@/Contexts/cartContext";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,6 +25,11 @@ export default function Sidebar() {
   const { typeUser, username, setUserName } = useUserStore();
 
   const { toastSuccess } = ToastNotifications();
+  const { clearListProductsInCart, listProductsInCart } = useZustandContext();
+
+  function handleClearListProductsInCart() {
+    clearListProductsInCart(listProductsInCart);
+  }
 
   const handleLogout = async () => {
     try {
@@ -106,6 +112,7 @@ export default function Sidebar() {
               <li>
                 <Link
                   to="/"
+                  onClick={() => handleClearListProductsInCart()}
                   className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
                 >
                   <span className="flex items-center gap-x-4">

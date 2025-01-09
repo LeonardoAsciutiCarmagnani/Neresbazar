@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import logo from "../../assets/neresbazar_logo.svg";
@@ -22,7 +22,11 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toastSuccess, toastError } = ToastNotifications();
-  const { setUser } = useAuthStore();
+  const { setUser, redirectToAuth } = useAuthStore();
+
+  useEffect(() => {
+    console.log(redirectToAuth);
+  }, [redirectToAuth]);
 
   const handleUserLogin = async (data: FormData) => {
     try {
@@ -39,7 +43,9 @@ export default function LoginForm() {
       };
       setUser(userCredentials);
       localStorage.setItem("loggedUser", JSON.stringify(userCredentials));
-      navigate("/select-category");
+      const nextURL = redirectToAuth ? "/checkout" : "/select-category";
+      console.log("nextURL: ", nextURL);
+      navigate(nextURL);
       setError("");
       toastSuccess("Login realizado com sucesso!");
     } catch (error) {
