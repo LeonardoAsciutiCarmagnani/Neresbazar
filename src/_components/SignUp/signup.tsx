@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Eye, EyeOff, User, Mail, Lock, IdCardIcon } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Lock,
+  IdCardIcon,
+  InfoIcon,
+} from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { useForm } from "react-hook-form";
 import { useAuthStore } from "../../Contexts/authStore";
@@ -18,9 +26,9 @@ import MaskedInput from "react-text-mask";
 interface FormCreateUser {
   name: string;
   email: string;
+  cpf: string;
   password: string;
   confirmPassword: string;
-  cpf: string;
 }
 
 const SignupForm = () => {
@@ -106,6 +114,13 @@ const SignupForm = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          <div className="flex items-center space-x-2 mb-4">
+            <InfoIcon className="h-5 w-5 text-[#f06139]" />
+            <h3 className="text-[0.6rem] text-red-500">
+              *Utilize os dados do responsável que está cadastrado no aplicativo
+              DuePay.
+            </h3>
+          </div>
 
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
             <div>
@@ -127,11 +142,6 @@ const SignupForm = () => {
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                   placeholder="João Silva"
                 />
-                {/* {errors.name && (
-                  <p className="text-red-500 text-sm min-h-[1rem]"> */}
-                {/* {errors.name.message}
-                  </p>
-                )} */}
               </div>
             </div>
 
@@ -160,11 +170,6 @@ const SignupForm = () => {
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500"
                   placeholder="seuemail@exemplo.com"
                 />
-                {/* {errors.email && (
-                  <p className="text-red-500 text-sm min-h-[1rem]"> */}
-                {/* {errors.email.message}
-                  </p>
-                )} */}
               </div>
             </div>
 
@@ -244,11 +249,6 @@ const SignupForm = () => {
                     <Eye className="h-5 w-5 text-[#f06139]" />
                   )}
                 </button>
-                {/* {errors.password && (
-                  <p className="text-red-500 text-sm min-h-[1rem]"> */}
-                {/* {errors.password.message}
-                  </p>
-                )} */}
               </div>
             </div>
 
@@ -273,11 +273,6 @@ const SignupForm = () => {
                   className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                   placeholder="**********"
                 />
-                {/* {errors.confirmPassword && (
-                  <p className="text-red-500 text-sm min-h-[1rem]"> */}
-                {/* {errors.confirmPassword.message}
-                  </p>
-                )} */}
               </div>
             </div>
 
