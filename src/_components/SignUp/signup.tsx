@@ -1,15 +1,7 @@
 import { useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  User,
-  Mail,
-  Lock,
-  IdCardIcon,
-  InfoIcon,
-} from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, IdCard, Info } from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { useAuthStore } from "../../Contexts/authStore";
 import {
   createUserWithEmailAndPassword,
@@ -21,7 +13,7 @@ import axios from "axios";
 import apiBaseUrl from "../../lib/apiConfig";
 import { useNavigate } from "react-router-dom";
 import ToastNotifications from "../Toasts/toasts";
-import MaskedInput from "react-text-mask";
+import MaskedInput from "react-text-mask"; // Importando novamente
 
 interface FormCreateUser {
   name: string;
@@ -33,24 +25,31 @@ interface FormCreateUser {
 
 const SignupForm = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toastError, toastSuccess } = ToastNotifications();
-  const { redirectToAuth } = useAuthStore();
-  const { register, handleSubmit } = useForm<FormCreateUser>();
+  const { setIsCreatingUser } = useAuthStore();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<FormCreateUser>({
+    mode: "onBlur",
+  });
 
-  useEffect(() => {
-    console.log(redirectToAuth);
-  }, [redirectToAuth]);
+  const handleCreateUser: SubmitHandler<FormCreateUser> = async (data) => {
+    if (data.password !== data.confirmPassword) {
+      toastError("As senhas não coincidem.");
+      return;
+    }
 
-  const handleCreateUser = async (data: FormCreateUser) => {
-    const { setIsCreatingUser } = useAuthStore.getState();
     let userCredential = null;
+    setError(null);
+    setIsCreatingUser(true);
 
     try {
-      setIsCreatingUser(true);
-
-      // Criar o usuário no Firebase
+      console.log("Criando usuário no Firebase...");
       userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
@@ -59,48 +58,79 @@ const SignupForm = () => {
       const user = userCredential.user;
       console.log("Usuário criado no Auth, user:", user);
 
-      // Atualizar o nome do usuário no Firebase
+      console.log("Atualizando perfil do usuário no Firebase...");
       await updateProfile(user, { displayName: data.name });
 
+      console.log("Fazendo requisição ao backend...");
+      // Remove a máscara antes de enviar para o backend, se necessário
+      const cpfUnmasked = data.cpf.replace(/[.-]/g, "");
       const response = await axios.post(`${apiBaseUrl}/create-user`, {
         user_id: user.uid,
         name: data.name,
         email: data.email,
-        cpf: data.cpf,
+        cpf: cpfUnmasked, // Enviando CPF sem máscara
         password: data.password,
       });
 
-      if (response.status === 200) {
+      console.log("Resposta do backend:", response);
+      if (response.status === 201) {
         toastSuccess(
-          "Cadastro realizado com sucesso. Por favor entre novamente."
+          "Cadastro realizado com sucesso. Por favor, entre novamente."
         );
-        setError("");
         navigate("/login");
       } else {
-        setError("Ocorreu um erro ao comunicar com o servidor");
-        throw new Error("Erro ao registrar no backend.");
+        throw new Error(
+          `Erro ao registrar no backend. Status: ${response.status}`
+        );
       }
-    } catch (error) {
-      console.error("Erro ao criar usuário:", error);
-
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const errorMsg =
+          err.response?.data?.message || "Erro ao comunicar com o servidor";
+        setError(errorMsg);
+        toastError(errorMsg);
+      } else if (err instanceof Error) {
+        setError(err.message);
+        toastError(err.message);
+      } else {
+        setError("Ocorreu um erro desconhecido");
+        toastError("Ocorreu um erro desconhecido");
+      }
       if (userCredential?.user) {
-        await deleteUser(userCredential.user);
+        try {
+          await deleteUser(userCredential.user);
+          console.log("Usuário deletado do Firebase:", userCredential.user.uid);
+        } catch (deleteError) {
+          console.error(
+            "Erro ao deletar usuário do Firebase:",
+            userCredential.user.uid,
+            deleteError
+          );
+        }
       }
-      toastError(
-        "Ocorreu um erro ao criar a conta. Por favor, tente novamente."
-      );
     } finally {
       setIsCreatingUser(false);
     }
   };
 
-  const onSubmit = (data: FormCreateUser) => {
-    if (data.password !== data.confirmPassword) {
-      toastError("As senhas não coincidem.");
-      return;
+  const handleCPFChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let { value } = event.target;
+    // Remove caracteres não numéricos
+    value = value.replace(/\D/g, "");
+
+    // Aplica a máscara
+    if (value.length > 3) {
+      value = `${value.substring(0, 3)}.${value.substring(3)}`;
     }
-    console.log("data", data);
-    handleCreateUser(data);
+    if (value.length > 7) {
+      value = `${value.substring(0, 7)}.${value.substring(7)}`;
+    }
+    if (value.length > 11) {
+      value = `${value.substring(0, 11)}-${value.substring(11, 13)}`;
+    }
+
+    // Atualiza o valor no formulário
+    setValue("cpf", value);
   };
 
   return (
@@ -112,21 +142,21 @@ const SignupForm = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-6">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 ">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <div className="flex items-center space-x-2 mb-4">
-            <InfoIcon className="h-5 w-5 text-[#f06139]" />
+            <Info className="h-5 w-5 text-[#f06139]" />
             <h3 className="text-[0.6rem] text-red-500">
               *Utilize os dados do responsável que está cadastrado no aplicativo
               DuePay.
             </h3>
           </div>
 
-          <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+          <form className="space-y-3" onSubmit={handleSubmit(handleCreateUser)}>
             <div>
               <label
                 htmlFor="name"
@@ -141,11 +171,19 @@ const SignupForm = () => {
                 <input
                   id="name"
                   type="text"
-                  required
-                  {...register("name", { required: "O nome é obrigatório" })}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                   placeholder="João Silva"
+                  {...register("name", {
+                    required: "Nome é obrigatório",
+                  })}
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
+                    errors.name ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
+                {errors.name && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -163,30 +201,36 @@ const SignupForm = () => {
                 <input
                   id="email"
                   type="email"
-                  required
+                  placeholder="seuemail@exemplo.com"
                   {...register("email", {
-                    required: "O e-mail é obrigatório",
+                    required: "E-mail é obrigatório",
                     pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "E-mail inválido",
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+                      message: "Endereço de e-mail inválido",
                     },
                   })}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500"
-                  placeholder="seuemail@exemplo.com"
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
+                    errors.email ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
+                {errors.email && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div>
               <label
-                htmlFor="email"
+                htmlFor="cpf"
                 className="block text-sm font-medium text-gray-700"
               >
                 CPF
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IdCardIcon className="h-5 w-5 text-[#f06139]" />
+                  <IdCard className="h-5 w-5 text-[#f06139]" />
                 </div>
                 <MaskedInput
                   mask={[
@@ -206,18 +250,26 @@ const SignupForm = () => {
                     /\d/,
                   ]}
                   id="cpf"
-                  type="text"
-                  required
                   {...register("cpf", {
                     required: "O CPF é obrigatório",
-                    pattern: {
-                      value: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
-                      message: "CPF inválido",
+                    validate: (value) => {
+                      const cpf = value.replace(/[.-]/g, ""); // Remove a máscara para validação
+                      if (cpf.length !== 11) return "CPF inválido";
+                      // Adicione aqui uma validação mais robusta do CPF, se necessário
+                      return true;
                     },
                   })}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500"
+                  onChange={handleCPFChange} // Adicionado para atualizar o valor no form
                   placeholder="123.456.789-00"
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
+                    errors.cpf ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500`}
                 />
+                {errors.cpf && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.cpf.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -234,13 +286,15 @@ const SignupForm = () => {
                 </div>
                 <input
                   id="password"
-                  required
                   type={showPassword ? "text" : "password"}
+                  placeholder="**********"
+                  autoComplete="new-password"
                   {...register("password", {
                     required: "A senha é obrigatória",
                   })}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="**********"
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
                 <button
                   type="button"
@@ -253,6 +307,11 @@ const SignupForm = () => {
                     <Eye className="h-5 w-5 text-[#f06139]" />
                   )}
                 </button>
+                {errors.password && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -269,14 +328,23 @@ const SignupForm = () => {
                 </div>
                 <input
                   id="confirmPassword"
-                  required
                   type={showPassword ? "text" : "password"}
+                  placeholder="**********"
+                  autoComplete="new-password"
                   {...register("confirmPassword", {
                     required: "A confirmação de senha é obrigatória",
                   })}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="**********"
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
+                    errors.confirmPassword
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
+                {errors.confirmPassword && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
             </div>
 

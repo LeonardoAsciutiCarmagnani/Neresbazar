@@ -7,13 +7,15 @@ import ProtectedRoute from "./_components/ProtectedRoute/protectedRoute";
 import SchoolSuppliesPage from "./_components/LazyComponents/lazySchoolSupplies";
 import UniformsPage from "./_components/LazyComponents/lazyUniforms";
 import PageLoader from "./_components/Loader/PageLoader/loader";
-import Loader from "./_components/Loader/ImageLoader/loader";
-import { Checkout } from "./Pages/Checkout";
+import Checkout from "./_components/CheckoutForm/checkoutForm";
+import Loader from "./_components/Loader/PageLoader/loader";
+// import Loader from "./_components/Loader/ImageLoader/loader";
+// import { Checkout } from "./Pages/Checkout";
 
 export const router = createBrowserRouter(
   [
     {
-      path: "/register",
+      path: "/signup",
       element: (
         <Suspense
           fallback={
@@ -66,9 +68,7 @@ export const router = createBrowserRouter(
             </div>
           }
         >
-          <ProtectedRoute>
-            <SchoolSuppliesPage />
-          </ProtectedRoute>
+          <SchoolSuppliesPage />
         </Suspense>
       ),
     },
@@ -96,38 +96,8 @@ export const router = createBrowserRouter(
             </div>
           }
         >
-          <Checkout />
-        </Suspense>
-      ),
-    },
-    {
-      path: "/page-loader",
-      element: (
-        <Suspense
-          fallback={
-            <div>
-              <PageLoader />
-            </div>
-          }
-        >
           <ProtectedRoute>
-            <PageLoader />
-          </ProtectedRoute>
-        </Suspense>
-      ),
-    },
-    {
-      path: "/image-loader",
-      element: (
-        <Suspense
-          fallback={
-            <div>
-              <PageLoader />
-            </div>
-          }
-        >
-          <ProtectedRoute>
-            <Loader />
+            <Checkout />
           </ProtectedRoute>
         </Suspense>
       ),
@@ -135,7 +105,13 @@ export const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <Suspense fallback={<div>Carregando...</div>}>
+        <Suspense
+          fallback={
+            <div>
+              <Loader />
+            </div>
+          }
+        >
           <SelectCategory />
         </Suspense>
       ),

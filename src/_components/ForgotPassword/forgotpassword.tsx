@@ -9,21 +9,64 @@ import {
   DialogTrigger,
 } from "../../components/ui/dialog";
 import { Alert, AlertDescription } from "../../components/ui/alert";
+import ToastNotifications from "../Toasts/toasts";
+import apiBaseUrl from "@/lib/apiConfig";
+import axios from "axios";
+import { sendPasswordResetEmail, getAuth } from "firebase/auth";
 
 const PasswordRecovery = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const { toastError, toastSuccess } = ToastNotifications();
+  const auth = getAuth();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email) {
       setError("Por favor, digite seu e-mail");
+      setSuccess(false);
       return;
     }
-    setSuccess(true);
-    setError("");
-    // Lógica de envio de email
+
+    try {
+      const response = await axios.post(
+        `${apiBaseUrl}/check-email`,
+        { email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setSuccess(true);
+        setError("");
+        await sendPasswordResetEmail(auth, email);
+        toastSuccess(`Verifique o email ${email} para redefinir sua senha.`);
+      } else {
+        setSuccess(false);
+        toastError("Erro inesperado. Verifique o console para mais detalhes.");
+        console.error("Resposta inesperada da API:", response);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const errorMessage =
+            error.response.data.message ||
+            "Erro ao processar a recuperação de senha.";
+          setSuccess(false);
+          toastError(errorMessage);
+        } else {
+          setSuccess(false);
+          toastError("Erro de conexão. Verifique sua rede.");
+        }
+      } else {
+        console.error("Erro ao enviar a requisição:", error);
+        toastError("Ocorreu um erro ao processar sua solicitação.");
+      }
+    }
   };
 
   return (
@@ -36,15 +79,15 @@ const PasswordRecovery = () => {
           <DialogTitle className="text-xl font-semibold">
             Recuperação de Senha
           </DialogTitle>
-          <DialogDescription>
-            Digite o e-mail cadastrado para receber as instruções de recuperação
-          </DialogDescription>
+          {!success && (
+            <DialogDescription>Digite o e-mail cadastrado</DialogDescription>
+          )}
         </DialogHeader>
 
         {success ? (
           <Alert className="bg-green-50 text-green-800 border-green-200">
             <AlertDescription>
-              Enviamos as instruções de recuperação para seu e-mail
+              Verifique seu email para redefinir sua senha.
             </AlertDescription>
           </Alert>
         ) : (

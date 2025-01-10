@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
-// import voidCart from "../assets/cart-xmark-svgrepo-com.svg";
 import { useZustandContext } from "../../Contexts/cartContext";
 import { Button } from "../../components/ui/button";
 import {
@@ -17,12 +16,10 @@ import Sidebar from "../Sidebar/sidebar";
 import { useAuthStore } from "@/Contexts/authStore";
 
 const Header: React.FC = () => {
-  // const [userName, setUserName] = useState<string | null>(null);
   const {
     countItemsInCart,
     listProductsInCart,
     totalValue,
-    // buyLimit,
     setTotalValue,
     setBuyLimit,
   } = useZustandContext();
@@ -32,25 +29,20 @@ const Header: React.FC = () => {
   useEffect(() => {
     setTotalValue();
     setBuyLimit();
-    // console.log("Contando os itens no carrinho: ", countItemsInCart);
-    // console.log("Valor total do carrinho R$ 250,00 => ", totalValue);
   }, [listProductsInCart, setBuyLimit, setTotalValue]);
 
-  useEffect(() => {}, [countItemsInCart]);
-
-  const location = useLocation();
   const navigate = useNavigate();
 
   async function handleNavigateToCheckoutPage() {
     const userIsAutenticated = localStorage.getItem("loggedUser");
 
-    if (userIsAutenticated === null) {
-      setRedirectToAuth();
-      navigate("/register");
+    if (!userIsAutenticated) {
+      // Usuário não autenticado
+      setRedirectToAuth(true);
+      navigate("/login");
     } else {
-      const currentPath = location.pathname;
-
-      navigate("/checkout", { state: { from: currentPath } });
+      // Usuário autenticado
+      navigate("/checkout");
     }
   }
 
@@ -65,8 +57,8 @@ const Header: React.FC = () => {
       {/* Cart Section */}
       <div className="flex items-center gap-3">
         <Sheet>
-          <SheetTrigger>
-            <div className="flex items-center relative gap-2">
+          <SheetTrigger asChild>
+            <button className="flex items-center relative gap-2">
               <span className="text-lg font-semibold">
                 {totalValue.toLocaleString("pt-BR", {
                   style: "currency",
@@ -79,7 +71,7 @@ const Header: React.FC = () => {
                   {countItemsInCart}
                 </span>
               )}
-            </div>
+            </button>
           </SheetTrigger>
 
           <SheetContent className="flex flex-col p-6 bg-gray-50 shadow-lg rounded-lg overflow-y-auto max-h-[80vh] w-full sm:w-[600px] mt-[4.5rem]">
@@ -107,7 +99,7 @@ const Header: React.FC = () => {
                 {listProductsInCart.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col items-center p-4 text-center border border-gray-300 rounded-lg shadow-md bg-white space-y-3"
+                    className="flex flex-col items-center p-4 text-center border border-gray-300 rounded-lg shadow-md bg-white space-y-3 min-w-fit"
                   >
                     {item.imagem ? (
                       <img

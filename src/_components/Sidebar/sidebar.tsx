@@ -1,30 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
-import {
-  HomeIcon,
-  LogOutIcon,
-  MenuIcon,
-  // PackageIcon,
-  PackagePlusIcon,
-  ReceiptIcon,
-  UserIcon,
-  UserRoundPlusIcon,
-  UsersIcon,
-  X,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Home, LogOut, LogIn, Menu, User, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../../../firebaseConfig";
 import ToastNotifications from "../Toasts/toasts";
 import useUserStore from "../../Contexts/UserStore";
 import { useZustandContext } from "@/Contexts/cartContext";
 
+interface UserData {
+  email: string;
+}
+
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
-  const { typeUser, username, setUserName } = useUserStore();
-
-  const { toastSuccess } = ToastNotifications();
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State para controlar se o usuário está logado
+  const { username, setUserName, setTypeUser } = useUserStore();
+  const navigate = useNavigate();
+  const { toastSuccess, toastError } = ToastNotifications();
   const { clearListProductsInCart, listProductsInCart } = useZustandContext();
 
   function handleClearListProductsInCart() {
@@ -33,29 +26,31 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      // Chama o método signOut do Firebase Authentication
       await signOut(auth);
-      const setTypeUser = useUserStore.getState().setTypeUser;
       setTypeUser(null);
-
+      setUserName(null); // Limpa o nome do usuário
+      setIsLoggedIn(false); // Atualiza o estado de login
       toastSuccess("Logout realizado com sucesso!");
-
-      // Limpa o localStorage ou qualquer outro dado de sessão
-      localStorage.removeItem("userName");
-      localStorage.removeItem("user");
-      localStorage.removeItem("loggedUser");
+      localStorage.clear();
+      navigate("/"); // Redireciona para a home após o logout
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
+      toastError("Erro ao fazer logout");
     }
   };
 
   useEffect(() => {
     const userJSON = localStorage.getItem("loggedUser");
-    const getUserName = localStorage.getItem("userName");
+    const storedUsername = localStorage.getItem("userName");
     if (userJSON) {
-      const user = JSON.parse(userJSON);
-      setEmail(user.email);
-      setUserName(getUserName);
+      const user = JSON.parse(userJSON) as UserData;
+      setIsLoggedIn(true); // Usuário está logado
+      setUserName(storedUsername);
+      console.log(user, storedUsername, "Aqui dados do sidebar");
+    } else {
+      setUserName(null);
+      setTypeUser(null);
+      setIsLoggedIn(false); // Usuário não está logado
     }
   }, []);
 
@@ -67,7 +62,7 @@ export default function Sidebar() {
         className="p-2 focus:outline-none"
         aria-label="Abrir menu"
       >
-        <MenuIcon className="text-gray-800" size={32} />
+        <Menu className="text-gray-800" size={32} />
       </button>
 
       {/* Overlay */}
@@ -85,7 +80,7 @@ export default function Sidebar() {
         }`}
       >
         {/* Cabeçalho da Sidebar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">Menu</h2>
           <button
             onClick={() => setIsOpen(false)}
@@ -99,99 +94,67 @@ export default function Sidebar() {
         {/* Conteúdo da Sidebar */}
         <div className="p-4">
           {/* Informações do Usuário */}
-          <div className="flex items-center gap-x-4 mb-6">
-            <UserIcon className="text-[#f06139]" size={32} />
-            <div>
-              <p className="font-semibold text-amber-600">{username}</p>
-              <p className="text-sm text-gray-500">{email}</p>
+          {isLoggedIn && (
+            <div className="flex items-center gap-x-4 mb-6">
+              <User className="text-[#f06139]" size={32} />
+              <div>
+                <p className="font-semibold text-gray-800">{username}</p>
+                <p className="text-sm text-gray-500">
+                  {localStorage.getItem("loggedUser") &&
+                    (
+                      JSON.parse(
+                        localStorage.getItem("loggedUser")!
+                      ) as UserData
+                    ).email}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           <ul className="space-y-4">
-            {typeUser !== "fábrica" && (
-              <li>
-                <Link
-                  to="/"
-                  onClick={() => handleClearListProductsInCart()}
-                  className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-                >
-                  <span className="flex items-center gap-x-4">
-                    <HomeIcon className="text-[#f06139]" size={24} />
-                    Home
-                  </span>
-                </Link>
-              </li>
-            )}
+            {/* Itens do Menu */}
 
-            {/* <li>
+            <li>
               <Link
-                to={
-                  typeUser === "cliente" ? "/get-orders-client" : "/get-orders"
-                }
+                to="/"
+                onClick={() => {
+                  handleClearListProductsInCart();
+                  setIsOpen(false);
+                }}
                 className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
               >
                 <span className="flex items-center gap-x-4">
-                  <PackageIcon className="text-[#f06139]" size={24} /> Pedidos
+                  <Home className="text-[#f06139]" size={24} />
+                  Home
                 </span>
               </Link>
-            </li> */}
-            {typeUser === "adm" && (
-              <>
-                <li>
-                  <Link
-                    to="/prices-lists"
-                    className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-                  >
-                    <span className="flex items-center gap-x-4">
-                      <ReceiptIcon className="text-[#f06139]" size={24} />{" "}
-                      Listas de preços
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/register"
-                    className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-                  >
-                    <span className="flex items-center gap-x-4">
-                      <UserRoundPlusIcon className="text-[#f06139]" size={24} />{" "}
-                      Cadastro de cliente
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/clients"
-                    className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-                  >
-                    <span className="flex items-center gap-x-4">
-                      <UsersIcon className="text-[#f06139]" size={24} />{" "}
-                      Clientes
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/create-order-sale"
-                    className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-                  >
-                    <span className="flex items-center gap-x-4">
-                      <PackagePlusIcon className="text-[#f06139]" size={24} />{" "}
-                      Criação de pedido
-                    </span>
-                  </Link>
-                </li>{" "}
-              </>
-            )}
+            </li>
+
+            {/* Botão de Login/Logout */}
             <li>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-              >
-                <span className="flex items-center gap-x-4">
-                  <LogOutIcon className="text-red-600" size={24} /> Sair
-                </span>
-              </button>
+              {isLoggedIn ? (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    handleClearListProductsInCart();
+                  }}
+                  className="block w-full text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
+                >
+                  <span className="flex items-center gap-x-4">
+                    <LogOut className="text-red-600" size={24} /> Sair
+                  </span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="block text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
+                >
+                  <span className="flex items-center gap-x-4">
+                    <LogIn className="text-[#f06139]" size={24} /> Login
+                  </span>
+                </Link>
+              )}
             </li>
           </ul>
         </div>

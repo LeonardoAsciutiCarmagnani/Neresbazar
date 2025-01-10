@@ -93,7 +93,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
           headers: {},
         }
       );
-      const data = response.data.filteredProducts;
+      const data = response.data.data;
       let initialIdSeq = 0;
 
       data.map((product: Product) => {

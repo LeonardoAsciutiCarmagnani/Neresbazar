@@ -12,12 +12,13 @@ interface AuthUser {
   uid: string;
   email: string | null;
   accessToken: string;
+  name: string | null;
 }
 
 interface AuthState {
   user: AuthUser | null;
   redirectToAuth: boolean;
-  setRedirectToAuth: () => void;
+  setRedirectToAuth: (boolean: boolean) => void;
   setUser: (user: AuthUser | null) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -62,6 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const user: AuthUser = {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
+      name: firebaseUser.displayName,
       accessToken,
     };
 
@@ -111,6 +113,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       accessToken,
+      name: firebaseUser.displayName,
     };
 
     setUser(user);
