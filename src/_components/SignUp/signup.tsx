@@ -13,7 +13,8 @@ import axios from "axios";
 import apiBaseUrl from "../../lib/apiConfig";
 import { useNavigate } from "react-router-dom";
 import ToastNotifications from "../Toasts/toasts";
-import MaskedInput from "react-text-mask"; // Importando novamente
+import MaskedInput from "react-text-mask";
+import { FirebaseError } from "firebase/app";
 
 interface FormCreateUser {
   name: string;
@@ -62,13 +63,13 @@ const SignupForm = () => {
       await updateProfile(user, { displayName: data.name });
 
       console.log("Fazendo requisição ao backend...");
-      // Remove a máscara antes de enviar para o backend, se necessário
+
       const cpfUnmasked = data.cpf.replace(/[.-]/g, "");
       const response = await axios.post(`${apiBaseUrl}/create-user`, {
         user_id: user.uid,
         name: data.name,
         email: data.email,
-        cpf: cpfUnmasked, // Enviando CPF sem máscara
+        cpf: cpfUnmasked,
         password: data.password,
       });
 
@@ -84,17 +85,31 @@ const SignupForm = () => {
         );
       }
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        const errorMsg =
-          err.response?.data?.message || "Erro ao comunicar com o servidor";
-        setError(errorMsg);
-        toastError(errorMsg);
-      } else if (err instanceof Error) {
-        setError(err.message);
-        toastError(err.message);
+      if (err instanceof Error) {
+        const firebaseError = err as FirebaseError;
+        switch (firebaseError.code) {
+          case "auth/email-already-in-use":
+            setError("Este email já está em uso.");
+            toastError("Este email já está em uso.");
+            break;
+          case "auth/invalid-email":
+            setError("O email fornecido é inválido.");
+            toastError("O email fornecido é inválido.");
+            break;
+          case "auth/weak-password":
+            setError("A senha é muito fraca.");
+            toastError("A senha é muito fraca.");
+            break;
+          default:
+            setError(err.message); // Usar 'err' aqui
+            toastError(err.message); // Usar 'err' aqui
+            console.error("Erro ao criar usuário:", err); // Usar 'err' aqui
+        }
       } else {
+        // Tratar caso em que 'err' não seja um objeto Error
         setError("Ocorreu um erro desconhecido");
         toastError("Ocorreu um erro desconhecido");
+        console.error("Erro inesperado:", err);
       }
       if (userCredential?.user) {
         try {
