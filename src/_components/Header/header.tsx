@@ -95,7 +95,7 @@ const Header: React.FC = () => {
                 </span>
               </div>
             ) : (
-              <div className="grid gap-6 mt-4 sm:grid-cols-2 lg:grid-cols-3 md:grid-cols-3">
+              <div className="flex flex-col gap-6 mt-4 ">
                 {listProductsInCart.map((item) => (
                   <div
                     key={item.id}
@@ -115,7 +115,19 @@ const Header: React.FC = () => {
                     <h3 className="md:text-xs text-lg font-semibold text-gray-800">
                       {item.nome.split(" ").slice(0, 3).join(" ")}
                     </h3>
-                    <p className="text-sm text-gray-600">{item.categoria}</p>
+                    <span className="flex flex-col">
+                      Tamanhos:
+                      <div>
+                        {item.variantSelected?.map((variation, index) => {
+                          return (
+                            <span key={index}>
+                              {" "}
+                              {variation.variant}({variation.count})
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </span>
                     <p className="text-sm text-gray-600">
                       Quantidade:{" "}
                       <span className="font-medium">{item.quantidade}</span>
