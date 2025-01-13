@@ -9,6 +9,7 @@ import UniformsPage from "./_components/LazyComponents/lazyUniforms";
 import PageLoader from "./_components/Loader/PageLoader/loader";
 import Checkout from "./_components/CheckoutForm/checkoutForm";
 import Loader from "./_components/Loader/PageLoader/loader";
+import { GetOrdersComponent } from "./_components/GetOrders";
 // import Loader from "./_components/Loader/ImageLoader/loader";
 // import { Checkout } from "./Pages/Checkout";
 
@@ -99,6 +100,20 @@ export const router = createBrowserRouter(
           <ProtectedRoute>
             <Checkout />
           </ProtectedRoute>
+        </Suspense>
+      ),
+    },
+    {
+      path: "/orders",
+      element: (
+        <Suspense
+          fallback={
+            <div>
+              <PageLoader />
+            </div>
+          }
+        >
+          <GetOrdersComponent />
         </Suspense>
       ),
     },

@@ -19,7 +19,7 @@ const useUserStore = create<UserStoreState>((set) => ({
   username: null,
   setUserName: (username) => set({ username }),
   getUidFromLocalStorage: () => {
-    const userJSON = localStorage.getItem("user");
+    const userJSON = localStorage.getItem("loggedUser");
     if (userJSON) {
       try {
         const user = JSON.parse(userJSON);
@@ -45,8 +45,8 @@ const useUserStore = create<UserStoreState>((set) => ({
       console.log("Requisição feita");
 
       if (docSnap.exists()) {
-        const userName: string = docSnap.data()?.user_name;
-        localStorage.setItem("userName", userName);
+        const userName: string = docSnap.data()?.name;
+        localStorage.setItem("username", userName);
 
         return userName || null;
       } else {

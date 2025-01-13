@@ -8,10 +8,12 @@ interface UserData {
   cpf: string;
   email: string;
   uid: string;
+  name: string;
 }
 
 const Checkout: React.FC = () => {
   const [cpf, setCpf] = useState<string | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const navigate = useNavigate();
   const { listProductsInCart } = useZustandContext();
   useEffect(() => {
@@ -36,6 +38,8 @@ const Checkout: React.FC = () => {
           }));
 
           console.log("Clientes encontrados:", clients[0].cpf);
+          const user = clients[0];
+          setUser(user);
           const getUserCpf = clients[0].cpf;
           setCpf(getUserCpf);
         } catch (error) {
@@ -65,66 +69,99 @@ const Checkout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center px-4 py-12">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           Checkout
         </h1>
 
         {cpf ? (
-          <div className="mb-3 flex flex-col md:flex md:flex-col gap-1">
-            <div className=" ">
-              <p className="text-gray-700 font-medium mb-2">CPF do Cliente:</p>
-              <p className="text-gray-900 text-xl font-semibold">
-                {formatCPF(cpf)}
-              </p>
+          <div className="mb-4">
+            <div className="flex justify-start mb-2">
+              <h2 className="text-gray-600 text-md font-semibold uppercase">
+                Informações{" "}
+              </h2>
             </div>
-            <div className="space-y-2 h-96 overflow-y-scroll scrollbar-thin w-full ">
-              {listProductsInCart.map((product) => {
-                return (
-                  <div
-                    key={product.id}
-                    className="flex flex-col items-center justify-center border-2 rounded-lg flex-1"
-                  >
-                    <img
-                      src={product.imagem}
-                      alt="Imagem do produto"
-                      className="size-20"
-                    />
-                    <span className=" text-center">{product.nome}</span>
-                    <span>Quantidade: {product.quantidade}</span>
-                    <span>
+            <div className="grid grid-cols-2 border-b-2 border-gray-200 pb-3 mb-2">
+              <div>
+                <label
+                  htmlFor="nome"
+                  className="block text-gray-700 font-medium mb-1"
+                >
+                  Nome:
+                </label>
+                <p
+                  id="nome"
+                  className="text-gray-900 text-base font-semibold truncate"
+                >
+                  {user?.name}
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="cpf"
+                  className="block text-gray-700 font-medium mb-1"
+                >
+                  CPF:
+                </label>
+                <p id="cpf" className="text-gray-900 text-md font-semibold">
+                  {formatCPF(cpf)}
+                </p>
+              </div>
+            </div>
+
+            <div className="h-72 overflow-y-auto scrollbar-thin pr-2">
+              {" "}
+              {/* Ajuste a altura conforme necessário */}
+              {listProductsInCart.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center border-b border-gray-200 py-2"
+                >
+                  <img
+                    src={product.imagem}
+                    alt="Imagem do produto"
+                    className="w-16 h-16 object-cover rounded-md mr-4"
+                  />
+                  <div>
+                    <p className="font-medium">{product.nome}</p>
+                    <p className="text-sm text-gray-600">
+                      Quantidade: {product.quantidade}
+                    </p>
+                    <p className="text-sm text-gray-600">
                       Tamanhos:
-                      {product.variantSelected?.map((variation, index) => {
-                        return (
-                          <span key={index}>
-                            {" "}
-                            {variation.variant}({variation.count})
-                          </span>
-                        );
-                      })}
-                    </span>
-                    <span>Preço: {product.preco}</span>
+                      {product.variantSelected?.map((variation, index) => (
+                        <span key={index}>
+                          {" "}
+                          {variation.variant}({variation.count})
+                        </span>
+                      ))}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Preço: {product.preco}
+                    </p>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         ) : (
-          <p className="text-gray-700">
+          <p className="text-gray-700 text-center">
             Não foi possível carregar o CPF do cliente.
           </p>
         )}
 
-        <div className="flex gap-1">
+        <div className="flex flex-col gap-2 mt-4">
+          {" "}
+          {/* Alterado para flex-col */}
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(-1)} // Substituído por navigate(-1)
             className="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition-colors"
           >
             Finalizar pedido
           </button>
-
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(-1)} // Substituído por navigate(-1)
             className="w-full bg-amber-600 text-white font-semibold py-3 rounded-lg hover:bg-amber-700 transition-colors"
           >
             Voltar

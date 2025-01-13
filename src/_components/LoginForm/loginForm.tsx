@@ -10,6 +10,7 @@ import ToastNotifications from "../Toasts/toasts";
 import { useAuthStore } from "../../Contexts/authStore";
 import { useForm } from "react-hook-form";
 import { Input } from "../../components/ui/input";
+import useUserStore from "@/Contexts/UserStore";
 
 interface FormData {
   email: string;
@@ -23,6 +24,7 @@ export default function LoginForm() {
   const navigate = useNavigate();
   const { toastSuccess, toastError } = ToastNotifications();
   const { setUser, redirectToAuth } = useAuthStore();
+  const { fetchUserName } = useUserStore();
 
   useEffect(() => {
     console.log(redirectToAuth);
@@ -43,13 +45,14 @@ export default function LoginForm() {
       };
       setUser(userCredentials);
       localStorage.setItem("loggedUser", JSON.stringify(userCredentials));
+      const username = await fetchUserName();
+      localStorage.setItem("username", username?.toString() || "");
       const nextURL = redirectToAuth ? "/checkout" : "/select-category";
       console.log("nextURL: ", nextURL);
       navigate(nextURL);
       setError("");
       toastSuccess("Login realizado com sucesso!");
     } catch (error) {
-      console.log("Veja isso:", data.email, data.password);
       console.error("Erro de autenticação:", error);
       toastError("Login ou senha incorretos.");
     }

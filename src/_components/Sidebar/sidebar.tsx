@@ -1,6 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
-import { Home, LogOut, LogIn, Menu, User, X } from "lucide-react";
+import {
+  Home,
+  LogOut,
+  LogIn,
+  Menu,
+  User,
+  X,
+  NotepadTextIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../../../firebaseConfig";
@@ -15,7 +23,14 @@ interface UserData {
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // State para controlar se o usuário está logado
-  const { username, setUserName, setTypeUser } = useUserStore();
+  const {
+    username,
+    setUserName,
+    setTypeUser,
+    typeUser,
+    fetchTypeUser,
+    fetchUserName,
+  } = useUserStore();
   const navigate = useNavigate();
   const { toastSuccess, toastError } = ToastNotifications();
   const { clearListProductsInCart, listProductsInCart } = useZustandContext();
@@ -41,11 +56,13 @@ export default function Sidebar() {
 
   useEffect(() => {
     const userJSON = localStorage.getItem("loggedUser");
-    const storedUsername = localStorage.getItem("userName");
+    const storedUsername = localStorage.getItem("username");
     if (userJSON) {
       const user = JSON.parse(userJSON) as UserData;
       setIsLoggedIn(true); // Usuário está logado
       setUserName(storedUsername);
+      fetchTypeUser();
+      fetchUserName();
       console.log(user, storedUsername, "Aqui dados do sidebar");
     } else {
       setUserName(null);
@@ -98,7 +115,9 @@ export default function Sidebar() {
             <div className="flex items-center gap-x-4 mb-6">
               <User className="text-[#f06139]" size={32} />
               <div>
-                <p className="font-semibold text-gray-800">{username}</p>
+                <p className="font-semibold text-gray-800 flex justify-start">
+                  {username}
+                </p>
                 <p className="text-sm text-gray-500">
                   {localStorage.getItem("loggedUser") &&
                     (
@@ -131,6 +150,19 @@ export default function Sidebar() {
             </li>
 
             {/* Botão de Login/Logout */}
+            {typeUser === "adm" && (
+              <li>
+                <Link
+                  to="/orders"
+                  className="block w-full text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
+                >
+                  <span className="flex items-center gap-x-4">
+                    <NotepadTextIcon className="text-[#f06139]" size={24} />{" "}
+                    Pedidos
+                  </span>
+                </Link>
+              </li>
+            )}
             <li>
               {isLoggedIn ? (
                 <button

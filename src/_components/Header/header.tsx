@@ -39,7 +39,10 @@ const Header: React.FC = () => {
     if (!userIsAutenticated) {
       // Usuário não autenticado
       setRedirectToAuth(true);
-      navigate("/login");
+      setTimeout(() => {
+        setRedirectToAuth(false);
+        navigate("/login");
+      }, 5000);
     } else {
       // Usuário autenticado
       navigate("/checkout");
@@ -74,73 +77,100 @@ const Header: React.FC = () => {
             </button>
           </SheetTrigger>
 
-          <SheetContent className="flex flex-col p-6 bg-gray-50 shadow-lg rounded-lg overflow-y-auto max-h-[80vh] w-full sm:w-[600px] mt-[4.5rem]">
-            <SheetHeader className="mb-4">
-              <SheetTitle className="text-2xl font-bold text-gray-900">
-                Vamos conferir todos os produtos selecionados?
-              </SheetTitle>
-              <SheetDescription className="text-base text-gray-700 mt-2">
-                Total de itens:{" "}
-                <span className="font-semibold underline">
-                  {countItemsInCart}
-                </span>
-              </SheetDescription>
-            </SheetHeader>
-
-            {listProductsInCart.length < 1 ? (
-              <div className="flex flex-col items-center mt-6 space-y-4">
-                <ShoppingCart size={64} className="text-gray-300" />
-                <span className="text-gray-600">
-                  Nenhum produto adicionado ao carrinho. 😢
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-6 mt-4 ">
-                {listProductsInCart.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col items-center p-4 text-center border border-gray-300 rounded-lg shadow-md bg-white space-y-3 min-w-fit"
-                  >
-                    {item.imagem ? (
-                      <img
-                        src={item.imagem}
-                        alt={`Imagem do produto ${item.nome}`}
-                        className="w-36 h-36 object-cover rounded-md border border-gray-200"
-                      />
-                    ) : (
-                      <div className="w-full h-36 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500">
-                        Sem imagem
-                      </div>
-                    )}
-                    <h3 className="md:text-xs text-lg font-semibold text-gray-800">
-                      {item.nome.split(" ").slice(0, 3).join(" ")}
-                    </h3>
-                    <span className="flex flex-col">
-                      Tamanhos:
-                      <div>
-                        {item.variantSelected?.map((variation, index) => {
-                          return (
-                            <span key={index}>
-                              {" "}
-                              {variation.variant}({variation.count})
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </span>
-                    <p className="text-sm text-gray-600">
-                      Quantidade:{" "}
-                      <span className="font-medium">{item.quantidade}</span>
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Valor unitário:{" "}
+          <SheetContent className="flex flex-col p-6 bg-white shadow-lg rounded-lg overflow-y-auto max-h-[80vh] w-full sm:w-[600px] mt-[4.5rem] font-poppins">
+            <SheetHeader className="flex items-center justify-between">
+              <div>
+                <SheetTitle className="text-lg font-bold text-gray-900">
+                  Confira todos os produtos selecionados.
+                </SheetTitle>
+                <SheetDescription className="text-base text-gray-700 mt-2">
+                  <div className="flex items-center justify-between py-1 border-y-2 ">
+                    <div>
+                      Total de itens:{" "}
+                      <span className="font-semibold text-[#f7633d]">
+                        {countItemsInCart}
+                      </span>
+                    </div>
+                    <div>
+                      Valor total:{" "}
                       <span className="font-semibold text-green-600">
-                        {item.preco.toLocaleString("pt-BR", {
+                        {totalValue.toLocaleString("pt-BR", {
                           style: "currency",
                           currency: "BRL",
                         })}
                       </span>
-                    </p>
+                    </div>
+                  </div>
+                </SheetDescription>
+              </div>
+            </SheetHeader>
+
+            {listProductsInCart.length < 1 ? (
+              <div className="flex flex-col items-center mt-3 space-y-4">
+                <ShoppingCart size={64} className="text-gray-300" />
+                <span className="text-gray-600 text-center">
+                  Nenhum produto adicionado ao carrinho. 😢
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {listProductsInCart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col sm:flex-row items-center p-4 text-center sm:text-left border border-gray-200 rounded-lg shadow-md bg-white space-y-3 sm:space-y-0 sm:space-x-4"
+                  >
+                    <div className="w-36 h-36 sm:w-24 sm:h-24 relative">
+                      {item.imagem ? (
+                        <img
+                          src={item.imagem}
+                          alt={`Imagem do produto ${item.nome}`}
+                          className="w-full h-full object-cover rounded-md border border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500">
+                          Sem imagem
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col flex-grow">
+                      <h3 className="text-md font-semibold text-gray-800 line-clamp-2 antialiased font-poppins">
+                        {item.nome}
+                      </h3>
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center">
+                        {item.variacao && (
+                          <div>
+                            <span className="text-sm text-gray-600">
+                              Tamanhos selecionados:{" "}
+                              {item.variantSelected?.map((variation, index) => (
+                                <span key={index} className="ml-1">
+                                  {variation.variant}{" "}
+                                  <span className="text-[#f7633d]">
+                                    ({variation.count})
+                                  </span>
+                                </span>
+                              ))}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center mt-2 sm:mt-0 justify-center">
+                          <span className="text-sm text-gray-600 mr-2">
+                            Quantidade:{" "}
+                            <span className="font-semibold text-[#f7633d]">
+                              {item.quantidade}
+                            </span>
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            Valor unitário:{" "}
+                            <span className="font-semibold text-green-600">
+                              {item.preco.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -149,14 +179,14 @@ const Header: React.FC = () => {
             {listProductsInCart.length > 0 ? (
               <Button
                 onClick={() => handleNavigateToCheckoutPage()}
-                className="w-full py-2 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500"
+                className="w-full py-3 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200 mt-6"
               >
                 Pedido conferido!
               </Button>
             ) : (
               <Button
                 disabled
-                className="mt-6 w-full py-2 text-lg font-semibold text-gray-400 bg-gray-200 rounded-lg"
+                className="mt-6 w-full py-3 text-lg font-semibold text-gray-400 bg-gray-200 rounded-lg cursor-not-allowed"
               >
                 Pedido conferido!
               </Button>
