@@ -14,7 +14,7 @@ export interface Product {
   id_seq?: number;
   disponivel: boolean;
   variacao?: Variacao[];
-  variantSelected: string[] | null;
+  variantSelected: { variant: string | null; count: number }[] | null;
 }
 
 export interface Variacao {
@@ -154,7 +154,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
       let updateProducts = state.products;
 
-      const additionalValue = existingProductIndex !== -1 ? preco : preco * 1;
+      const additionalValue = preco;
 
       if (state.totalValue + additionalValue > 250) {
         console.log("Limite de valor alcançado. Produto não adicionado.");
@@ -162,17 +162,24 @@ export const useZustandContext = create<ContextStates>((set) => ({
         return {};
       }
 
-      console.log(variation);
       if (existingProductIndex !== -1) {
+        const existingProduct = updateList[existingProductIndex];
+        const existingVariants = existingProduct.variantSelected || [];
+
+        const variantIndex = existingVariants.findIndex(
+          (variant) => variant.variant === variation
+        );
+
+        if (variantIndex >= 0) {
+          existingVariants[variantIndex].count += 1;
+        } else {
+          existingVariants.push({ variant: variation, count: 1 });
+        }
+
         updateList[existingProductIndex] = {
-          ...updateList[existingProductIndex],
-          quantidade: updateList[existingProductIndex].quantidade + 1,
-          variantSelected: variation
-            ? [
-                ...(updateList[existingProductIndex].variantSelected || []),
-                variation,
-              ]
-            : [],
+          ...existingProduct,
+          quantidade: existingProduct.quantidade + 1,
+          variantSelected: existingVariants,
         };
       } else {
         updateList.push({
@@ -183,7 +190,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
           quantidade: 1,
           imagem,
           disponivel,
-          variantSelected: variation ? [variation] : [],
+          variantSelected: variation ? [{ variant: variation, count: 1 }] : [],
         });
       }
 
@@ -191,7 +198,7 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
       updateProducts = state.products.map((product) =>
         product.id === id
-          ? { ...product, quantidade: product.quantidade + 1 }
+          ? { ...product, quantidade: (product.quantidade || 0) + 1 }
           : product
       );
 
@@ -218,21 +225,43 @@ export const useZustandContext = create<ContextStates>((set) => ({
 
   handleRemoveItemFromCart: (productId) =>
     set((state) => {
-      let updateCountInCard = state.countItemsInCart;
+      let updateCountInCart = state.countItemsInCart;
 
       const newList = state.listProductsInCart
         .map((item) => {
           if (item.id === productId) {
-            updateCountInCard -= 1;
+            updateCountInCart -= 1;
+
+            // Atualiza a quantidade total do produto
+            const updatedQuantidade = item.quantidade - 1;
+
+            const updatedVariants = [...(item.variantSelected || [])];
+
+            // Verifica o último item de variantSelected
+            if (updatedVariants.length > 0) {
+              const lastVariant = updatedVariants[updatedVariants.length - 1];
+
+              if (lastVariant.count > 1) {
+                // Subtrai o count do último item se for maior que 1
+                updatedVariants[updatedVariants.length - 1] = {
+                  ...lastVariant,
+                  count: lastVariant.count - 1,
+                };
+              } else {
+                // Remove o último item se o count for 1
+                updatedVariants.pop();
+              }
+            }
 
             return {
               ...item,
-              quantidade: item.quantidade - 1,
+              quantidade: updatedQuantidade,
+              variantSelected: updatedVariants,
             };
           }
           return item;
         })
-        .filter((item) => item.quantidade > 0);
+        .filter((item) => item.quantidade > 0); // Remove produtos com quantidade zero
 
       const updateProducts = state.products.map((product) => {
         if (product.id === productId) {
@@ -252,20 +281,18 @@ export const useZustandContext = create<ContextStates>((set) => ({
         }
       });
 
-      /* const currentValue = newList.reduce((acc, product) => {
+      const currentValue = newList.reduce((acc, product) => {
         acc += product.preco * product.quantidade;
-
         return acc;
       }, 0);
- */
-      /*   if (currentValue < 250) {
-        state.setBuyLimit();
-      } */
+
+      console.log(newList);
 
       return {
         listProductsInCart: newList,
         products: updateProducts,
-        countItemsInCart: Math.max(updateCountInCard, 0),
+        countItemsInCart: Math.max(updateCountInCart, 0),
+        totalValue: currentValue,
       };
     }),
 }));
