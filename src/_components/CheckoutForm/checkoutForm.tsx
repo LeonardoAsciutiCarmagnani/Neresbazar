@@ -138,12 +138,15 @@ const Checkout: React.FC = () => {
       order_code: 0,
       status_order: 0,
       created_at: new Date().toISOString(),
-      total: listProductsInCart
-        .reduce(
-          (total, product) => total + (product.preco ?? 0) * product.quantidade,
-          0
-        )
-        .toFixed(2),
+      total: parseFloat(
+        listProductsInCart
+          .reduce(
+            (total, product) =>
+              total + (product.preco ?? 0) * product.quantidade,
+            0
+          )
+          .toFixed(2)
+      ),
       cliente: {
         documento: user.cpf,
         email: user.email,
@@ -178,13 +181,15 @@ const Checkout: React.FC = () => {
         {
           idMeioDePagamento: 1,
           parcelas: 1,
-          valor: listProductsInCart
-            .reduce(
-              (total, product) =>
-                total + (product.preco ?? 0) * product.quantidade,
-              0
-            )
-            .toFixed(2),
+          valor: parseFloat(
+            listProductsInCart
+              .reduce(
+                (total, product) =>
+                  total + (product.preco ?? 0) * product.quantidade,
+                0
+              )
+              .toFixed(2)
+          ),
         },
       ],
       numeroPedidoDeVenda: "",
@@ -205,7 +210,7 @@ const Checkout: React.FC = () => {
         ...order,
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         toastSuccess("Pedido realizado com sucesso.");
       } else {
         toastError("Erro ao realizar o pedido.");
