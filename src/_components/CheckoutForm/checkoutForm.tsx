@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../../../firebaseConfig";
 import React, { useEffect, useState } from "react";
@@ -78,6 +79,7 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { listProductsInCart } = useZustandContext();
   const { toastError, toastSuccess } = ToastNotifications();
+
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedUser");
     console.log("Produtos no carrinho:", listProductsInCart);
@@ -138,12 +140,15 @@ const Checkout: React.FC = () => {
       order_code: 0,
       status_order: 0,
       created_at: new Date().toISOString(),
-      total: listProductsInCart
-        .reduce(
-          (total, product) => total + (product.preco ?? 0) * product.quantidade,
-          0
-        )
-        .toFixed(2),
+      total: parseFloat(
+        listProductsInCart
+          .reduce(
+            (total, product) =>
+              total + (product.preco ?? 0) * product.quantidade,
+            0
+          )
+          .toFixed(2)
+      ),
       cliente: {
         documento: user.cpf,
         email: user.email,
@@ -178,13 +183,15 @@ const Checkout: React.FC = () => {
         {
           idMeioDePagamento: 1,
           parcelas: 1,
-          valor: listProductsInCart
-            .reduce(
-              (total, product) =>
-                total + (product.preco ?? 0) * product.quantidade,
-              0
-            )
-            .toFixed(2),
+          valor: parseFloat(
+            listProductsInCart
+              .reduce(
+                (total, product) =>
+                  total + (product.preco ?? 0) * product.quantidade,
+                0
+              )
+              .toFixed(2)
+          ),
         },
       ],
       numeroPedidoDeVenda: "",
@@ -199,7 +206,6 @@ const Checkout: React.FC = () => {
       return;
     }
     const order = createOrderObject(user, listProductsInCart);
-    console.log("Venda: ", order);
     try {
       const response = await axios.post(`${apiBaseUrl}/post-order`, {
         ...order,

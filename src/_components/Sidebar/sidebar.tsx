@@ -150,19 +150,17 @@ export default function Sidebar() {
             </li>
 
             {/* Botão de Login/Logout */}
-            {typeUser === "adm" && (
-              <li>
-                <Link
-                  to="/orders"
-                  className="block w-full text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
-                >
-                  <span className="flex items-center gap-x-4">
-                    <NotepadTextIcon className="text-[#f06139]" size={24} />{" "}
-                    Pedidos
-                  </span>
-                </Link>
-              </li>
-            )}
+            <li>
+              <Link
+                to={typeUser === "adm" ? "/orders" : "/orders-client"}
+                className="block w-full text-gray-800 hover:text-white hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
+              >
+                <span className="flex items-center gap-x-4">
+                  <NotepadTextIcon className="text-[#f06139]" size={24} />{" "}
+                  Pedidos
+                </span>
+              </Link>
+            </li>
             <li>
               {isLoggedIn ? (
                 <button

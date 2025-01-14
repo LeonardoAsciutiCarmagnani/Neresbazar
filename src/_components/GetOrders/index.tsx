@@ -94,7 +94,7 @@ export type OrderSaleTypes = {
   valorDoFrete: number;
 };
 
-export function GetOrdersComponent() {
+export default function GetOrdersComponent() {
   const [orderList, setOrderList] = useState<OrderSaleTypes[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<OrderSaleTypes[]>([]);
   const [selectedOrderList, setSelectedOrderList] = useState<OrderSaleTypes[]>(
@@ -438,11 +438,11 @@ export function GetOrdersComponent() {
             {...register("selectStatus")}
           >
             <option value="0">Todos os status</option>
-            <option value="1">Pedido Aberto</option>
-            <option value="2">Em produção</option>
-            <option value="3">Pedido pronto</option>
-            <option value="5">Pedido enviado</option>
-            <option value="6">Entregue</option>
+            <option value="1">Pedido recebido</option>
+            <option value="2">Aguardando pagamento</option>
+            <option value="3">Pagamento confirmado</option>
+            <option value="5">Em separação</option>
+            <option value="6">Entregue/Retirada</option>
           </select>
 
           <Popover>
@@ -502,11 +502,11 @@ export function GetOrdersComponent() {
                   {...register("selectData")}
                   disabled={selectedOrderList.length === 0}
                 >
-                  <option value="1">Pedido Aberto</option>
-                  <option value="2">Em produção</option>
-                  <option value="3">Pedido pronto</option>
-                  <option value="5">Pedido enviado</option>
-                  <option value="6">Entregue</option>
+                  <option value="1">Pedido recebido</option>
+                  <option value="2">Aguardando pagamento</option>
+                  <option value="3">Pagamento confirmado</option>
+                  <option value="5">Em separação</option>
+                  <option value="6">Entregue/Retirada</option>
                 </select>
                 <div className="space-y-2 overflow-y-scroll h-56">
                   {selectedOrderList.length > 0 ? (
@@ -549,14 +549,15 @@ export function GetOrdersComponent() {
                           >
                             <span className="text-sm md:text-base text-nowrap">
                               {order.status_order === 1
-                                ? "Pedido Aberto"
+                                ? "Pedido recebido"
                                 : order.status_order === 2
-                                ? "Em produção"
+                                ? "Aguardando pagamento"
                                 : order.status_order === 3
-                                ? "Pedido pronto"
+                                ? "Pagamento confirmado"
                                 : order.status_order === 5
-                                ? "Pedido enviado"
-                                : order.status_order === 6 && "Entregue"}
+                                ? "Em separação"
+                                : order.status_order === 6 &&
+                                  "Entregue/Retirada"}
                             </span>
                           </div>
                         </div>
