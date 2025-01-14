@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, UserIcon } from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import logo from "../../assets/neresbazar_logo.svg";
 import ForgotPassword from "../ForgotPassword/forgotpassword";
@@ -172,6 +172,18 @@ export default function LoginForm() {
                       className="ml-2 font-medium text-[#f06139] hover:text-orange-500"
                     >
                       Registre-se
+                    </a>
+                  </span>
+                </div>
+
+                <div className="relative flex justify-center text-sm mt-6">
+                  <span className="px-1 bg-white text-gray-500 flex items-center">
+                    <UserIcon className="h-5 w-5 text-blue-600" />
+                    <a
+                      href="/"
+                      className="ml-2 font-medium text-blue-600 hover:text-blue-700"
+                    >
+                      Entrar como convidado
                     </a>
                   </span>
                 </div>

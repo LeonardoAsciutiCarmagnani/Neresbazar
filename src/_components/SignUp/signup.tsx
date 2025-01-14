@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { Eye, EyeOff, User, Mail, Lock, IdCard, Info } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Lock,
+  IdCard,
+  Info,
+  Phone,
+  MapPinHouseIcon,
+  House,
+} from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useAuthStore } from "../../Contexts/authStore";
@@ -22,6 +33,9 @@ interface FormCreateUser {
   cpf: string;
   password: string;
   confirmPassword: string;
+  phoneNumber: string;
+  CEP: string;
+  numberHouse: string;
 }
 
 const SignupForm = () => {
@@ -71,6 +85,10 @@ const SignupForm = () => {
         email: data.email,
         cpf: cpfUnmasked,
         password: data.password,
+        CEP: data.CEP,
+        numberHouse: data.numberHouse,
+        phoneNumber: data.phoneNumber,
+        type_user: "common",
       });
 
       console.log("Resposta do backend:", response);
@@ -179,7 +197,7 @@ const SignupForm = () => {
               >
                 Nome completo
               </label>
-              <div className="mt-1 relative">
+              <div className="mt-1 relative flex flex-col">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-[#f06139]" />
                 </div>
@@ -194,11 +212,6 @@ const SignupForm = () => {
                     errors.name ? "border-red-500" : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
-                {errors.name && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.name.message}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -228,11 +241,48 @@ const SignupForm = () => {
                     errors.email ? "border-red-500" : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.email.message}
-                  </p>
-                )}
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Telefone
+              </label>
+              <div className="mt-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Phone className="h-5 w-5 text-[#f06139]" />
+                </div>
+                <MaskedInput
+                  mask={[
+                    "(",
+                    /\d/,
+                    /\d/,
+                    ")",
+                    " ",
+                    /\d/,
+                    /\d/,
+                    /\d/,
+                    /\d/,
+                    /\d/,
+                    "-",
+                    /\d/,
+                    /\d/,
+                    /\d/,
+                    /\d/,
+                  ]}
+                  id="phone"
+                  type="tel"
+                  placeholder="(00) 00000-0000"
+                  {...register("phoneNumber", {
+                    required: "Telefone é obrigatório.",
+                  })}
+                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
+                    errors.email ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
+                />
               </div>
             </div>
 
@@ -280,11 +330,73 @@ const SignupForm = () => {
                     errors.cpf ? "border-red-500" : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500`}
                 />
-                {errors.cpf && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.cpf.message}
-                  </p>
-                )}
+              </div>
+            </div>
+
+            <div className="flex gap-x-3">
+              <div>
+                <label
+                  htmlFor="CEP"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  CEP
+                </label>
+                <div className="mt-1 relative">
+                  <div className="w-full">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPinHouseIcon className="h-5 w-5 text-[#f06139]" />
+                    </div>
+                    <MaskedInput
+                      mask={[
+                        /\d/,
+                        /\d/,
+                        /\d/,
+                        /\d/,
+                        /\d/,
+                        "-",
+                        /\d/,
+                        /\d/,
+                        /\d/,
+                      ]}
+                      id="cep"
+                      placeholder="00000-000"
+                      {...register("CEP", {
+                        required: "O CEP é obrigatório",
+                      })}
+                      className={`appearance-none block w-full pl-9 py-2 border ${
+                        errors.CEP ? "border-red-500" : "border-gray-300"
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="houseNumber"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Número da casa
+                </label>
+                <div className="mt-1 relative">
+                  <div>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <House className="h-5 w-5 text-[#f06139]" />
+                    </div>
+                    <input
+                      id="numberHouse"
+                      type="number"
+                      placeholder="0000"
+                      {...register("numberHouse", {
+                        required: "Número da casa é obrigatório",
+                      })}
+                      className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
+                        errors.numberHouse
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -322,11 +434,6 @@ const SignupForm = () => {
                     <Eye className="h-5 w-5 text-[#f06139]" />
                   )}
                 </button>
-                {errors.password && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.password.message}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -355,11 +462,6 @@ const SignupForm = () => {
                       : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
-                {errors.confirmPassword && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
               </div>
             </div>
 

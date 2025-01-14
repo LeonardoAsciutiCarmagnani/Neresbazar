@@ -14,6 +14,7 @@ import {
 import logo from "../../assets/neresbazar_logo.svg";
 import Sidebar from "../Sidebar/sidebar";
 import { useAuthStore } from "@/Contexts/authStore";
+import ToastNotifications from "../Toasts/toasts";
 
 const Header: React.FC = () => {
   const {
@@ -23,6 +24,7 @@ const Header: React.FC = () => {
     setTotalValue,
     setBuyLimit,
   } = useZustandContext();
+  const { toastInfo } = ToastNotifications();
 
   const { setRedirectToAuth } = useAuthStore();
 
@@ -39,6 +41,9 @@ const Header: React.FC = () => {
     if (!userIsAutenticated) {
       // Usuário não autenticado
       setRedirectToAuth(true);
+      toastInfo(
+        "Faça login ou crie uma conta para continuar. Você será redirecionado."
+      );
       setTimeout(() => {
         setRedirectToAuth(false);
         navigate("/login");

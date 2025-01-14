@@ -21,9 +21,19 @@ const ToastNotifications = () => {
     });
   };
 
+  const toastInfo = (description: string) => {
+    toast({
+      title: "Atenção!",
+      description: description,
+      variant: "info",
+      duration: 4900,
+    });
+  };
+
   return {
     toastSuccess,
     toastError,
+    toastInfo,
   };
 };
 
