@@ -211,7 +211,7 @@ const Checkout: React.FC = () => {
         ...order,
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         toastSuccess("Pedido realizado com sucesso.");
       } else {
         toastError("Erro ao realizar o pedido.");

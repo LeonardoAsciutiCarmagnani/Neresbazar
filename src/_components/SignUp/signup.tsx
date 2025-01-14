@@ -8,10 +8,10 @@ import {
   IdCard,
   Info,
   Phone,
-  MapPinHouseIcon,
   House,
+  MapPinnedIcon,
 } from "lucide-react";
-import { Alert, AlertDescription } from "../../components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useAuthStore } from "../../Contexts/authStore";
 import {
@@ -24,8 +24,10 @@ import axios from "axios";
 import apiBaseUrl from "../../lib/apiConfig";
 import { useNavigate } from "react-router-dom";
 import ToastNotifications from "../Toasts/toasts";
-import MaskedInput from "react-text-mask";
+import InputMask from "react-input-mask";
 import { FirebaseError } from "firebase/app";
+import FetchCEPComponent from "../FetchCEP/fetchCEP";
+import type { EnderecoData } from "../FetchCEP/fetchCEP";
 
 interface FormCreateUser {
   name: string;
@@ -35,7 +37,14 @@ interface FormCreateUser {
   confirmPassword: string;
   phoneNumber: string;
   CEP: string;
+
   numberHouse: string;
+
+  neighborhood: string;
+  locality: string;
+  IBGE: string;
+  uf: string;
+  address: string;
 }
 
 const SignupForm = () => {
@@ -44,16 +53,20 @@ const SignupForm = () => {
   const navigate = useNavigate();
   const { toastError, toastSuccess } = ToastNotifications();
   const { setIsCreatingUser } = useAuthStore();
+  const [addressData, setAddessData] = useState<EnderecoData | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
+    trigger,
+    getValues,
   } = useForm<FormCreateUser>({
     mode: "onBlur",
   });
 
   const handleCreateUser: SubmitHandler<FormCreateUser> = async (data) => {
+    console.log("HandleCreateUser chamado");
+
     if (data.password !== data.confirmPassword) {
       toastError("As senhas não coincidem.");
       return;
@@ -79,18 +92,24 @@ const SignupForm = () => {
       console.log("Fazendo requisição ao backend...");
 
       const cpfUnmasked = data.cpf.replace(/[.-]/g, "");
+      const cepUnmasked = data.CEP.replace(/[-]/g, "");
       const response = await axios.post(`${apiBaseUrl}/create-user`, {
         user_id: user.uid,
         name: data.name,
         email: data.email,
         cpf: cpfUnmasked,
         password: data.password,
-        CEP: data.CEP,
         numberHouse: data.numberHouse,
         phoneNumber: data.phoneNumber,
+        CEP: cepUnmasked,
+        IBGE: addressData?.ibge,
+        bairro: addressData?.bairro,
+        localidade: addressData?.localidade,
+        logradouro: addressData?.logradouro,
+        uf: addressData?.uf,
         type_user: "common",
       });
-
+      console.log("Dados do form: ", data);
       console.log("Resposta do backend:", response);
       if (response.status === 201) {
         toastSuccess(
@@ -119,12 +138,11 @@ const SignupForm = () => {
             toastError("A senha é muito fraca.");
             break;
           default:
-            setError(err.message); // Usar 'err' aqui
-            toastError(err.message); // Usar 'err' aqui
-            console.error("Erro ao criar usuário:", err); // Usar 'err' aqui
+            setError(err.message);
+            toastError(err.message);
+            console.error("Erro ao criar usuário:", err);
         }
       } else {
-        // Tratar caso em que 'err' não seja um objeto Error
         setError("Ocorreu um erro desconhecido");
         toastError("Ocorreu um erro desconhecido");
         console.error("Erro inesperado:", err);
@@ -146,26 +164,6 @@ const SignupForm = () => {
     }
   };
 
-  const handleCPFChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    let { value } = event.target;
-    // Remove caracteres não numéricos
-    value = value.replace(/\D/g, "");
-
-    // Aplica a máscara
-    if (value.length > 3) {
-      value = `${value.substring(0, 3)}.${value.substring(3)}`;
-    }
-    if (value.length > 7) {
-      value = `${value.substring(0, 7)}.${value.substring(7)}`;
-    }
-    if (value.length > 11) {
-      value = `${value.substring(0, 11)}-${value.substring(11, 13)}`;
-    }
-
-    // Atualiza o valor no formulário
-    setValue("cpf", value);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -178,6 +176,7 @@ const SignupForm = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <Alert variant="destructive" className="mb-6">
+              <AlertTitle>Erro!</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -255,24 +254,8 @@ const SignupForm = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Phone className="h-5 w-5 text-[#f06139]" />
                 </div>
-                <MaskedInput
-                  mask={[
-                    "(",
-                    /\d/,
-                    /\d/,
-                    ")",
-                    " ",
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    "-",
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                  ]}
+                <InputMask
+                  mask="(99) 99999-9999"
                   id="phone"
                   type="tel"
                   placeholder="(00) 00000-0000"
@@ -280,7 +263,7 @@ const SignupForm = () => {
                     required: "Telefone é obrigatório.",
                   })}
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    errors.email ? "border-red-500" : "border-gray-300"
+                    errors.phoneNumber ? "border-red-500" : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
               </div>
@@ -297,34 +280,18 @@ const SignupForm = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <IdCard className="h-5 w-5 text-[#f06139]" />
                 </div>
-                <MaskedInput
-                  mask={[
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    ".",
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    ".",
-                    /\d/,
-                    /\d/,
-                    /\d/,
-                    "-",
-                    /\d/,
-                    /\d/,
-                  ]}
+                <InputMask
+                  mask="999.999.999-99"
                   id="cpf"
                   {...register("cpf", {
                     required: "O CPF é obrigatório",
                     validate: (value) => {
-                      const cpf = value.replace(/[.-]/g, ""); // Remove a máscara para validação
+                      const cpf = value.replace(/[.-]/g, "");
                       if (cpf.length !== 11) return "CPF inválido";
                       // Adicione aqui uma validação mais robusta do CPF, se necessário
                       return true;
                     },
                   })}
-                  onChange={handleCPFChange} // Adicionado para atualizar o valor no form
                   placeholder="123.456.789-00"
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
                     errors.cpf ? "border-red-500" : "border-gray-300"
@@ -342,32 +309,30 @@ const SignupForm = () => {
                   CEP
                 </label>
                 <div className="mt-1 relative">
-                  <div className="w-full">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPinHouseIcon className="h-5 w-5 text-[#f06139]" />
-                    </div>
-                    <MaskedInput
-                      mask={[
-                        /\d/,
-                        /\d/,
-                        /\d/,
-                        /\d/,
-                        /\d/,
-                        "-",
-                        /\d/,
-                        /\d/,
-                        /\d/,
-                      ]}
-                      id="cep"
-                      placeholder="00000-000"
-                      {...register("CEP", {
-                        required: "O CEP é obrigatório",
-                      })}
-                      className={`appearance-none block w-full pl-9 py-2 border ${
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MapPinnedIcon className="h-5 w-5 text-[#f06139]" />
+                  </div>
+                  <div className="w-full pl-10">
+                    <InputMask
+                      mask="99999-999"
+                      type="text"
+                      {...register("CEP", { required: "O CEP é obrigatório" })}
+                      onBlur={() => trigger("CEP")}
+                      placeholder="CEP"
+                      className={`flex appearance-none w-full pr-3 py-2 border ${
                         errors.CEP ? "border-red-500" : "border-gray-300"
                       } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                     />
+                    <FetchCEPComponent
+                      cep={getValues("CEP")}
+                      onCEPDataReceived={(cepData) => setAddessData(cepData)}
+                    />
                   </div>
+                  {errors.CEP && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {errors.CEP.message}
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -455,6 +420,9 @@ const SignupForm = () => {
                   autoComplete="new-password"
                   {...register("confirmPassword", {
                     required: "A confirmação de senha é obrigatória",
+                    validate: (value) =>
+                      value === getValues("password") ||
+                      "As senhas não coincidem",
                   })}
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
                     errors.confirmPassword
@@ -462,17 +430,21 @@ const SignupForm = () => {
                       : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
+                {errors.confirmPassword && (
+                  <div className="text-red-500 text-sm mt-1">
+                    {errors.confirmPassword.message}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#f06139] hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-              >
-                Registrar
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#f06139] hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+            >
+              Registrar
+            </button>
+
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white text-gray-500">
                 Já possui uma conta?
