@@ -35,6 +35,7 @@ interface IFormInput {
 export function GetOrdersClientComponent() {
   const [orderList, setOrderList] = useState<OrderSaleTypes[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<OrderSaleTypes[]>([]);
+  const listToUse = filteredOrders.length > 0 ? filteredOrders : orderList;
   const [range, setRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -72,12 +73,17 @@ export function GetOrdersClientComponent() {
             return numB - numA;
           });
         });
+        console.log(queryList);
         setOrderList(queryList);
       }
     } catch (e) {
       console.error("Ocorreu um erro ao buscar os pedidos !", e);
     }
   };
+
+  useEffect(() => {
+    console.log("listToUse", listToUse);
+  }, [listToUse]);
   const handleSearchOrders: SubmitHandler<IFormInput> = (data) => {
     const selectStatus = isNaN(Number(data.selectStatus))
       ? 0
@@ -185,12 +191,11 @@ export function GetOrdersClientComponent() {
           {...register("selectStatus")}
         >
           <option value="0">Todos os status</option>
-          <option value="1">Pedido Aberto</option>
-          <option value="2">Em produção</option>
-          <option value="3">Pedido pronto</option>
-          <option value="4">Pedido faturado</option>
-          <option value="5">Pedido enviado</option>
-          <option value="6">Entregue</option>
+          <option value="1">Pedido recebido</option>
+          <option value="2">Aguardando pagamento</option>
+          <option value="3">Pagamento confirmado</option>
+          <option value="5">Em separação</option>
+          <option value="6">Entregue/Retirada</option>
         </select>
         <Popover>
           <PopoverTrigger asChild>
@@ -244,252 +249,123 @@ export function GetOrdersClientComponent() {
             <th className="border md:px-4 py-2 text-sm md:text-base hidden md:table-cell">
               Valor
             </th>
-            <th className="border md:px-4 py-2 text-sm md:text-base hidden md:table-cell">
-              Imprimir
-            </th>
           </tr>
         </thead>
         <tbody>
-          {filteredOrders.length > 0 ? (
-            <>
-              {filteredOrders.map((order) => (
-                <tr
-                  key={order.id}
-                  className={
-                    order.created_at === undefined
-                      ? "hidden"
-                      : "hover:bg-gray-50"
-                  }
-                >
-                  <td className="border px-4 py-2 hidden md:table-cell text-sm md:text-base">
-                    {order.order_code}
-                  </td>
+          {listToUse.map((order) => (
+            <tr
+              key={order.id}
+              className={
+                order.created_at === undefined ? "hidden" : "hover:bg-gray-50"
+              }
+            >
+              <td className="border px-4 py-2 hidden md:table-cell text-sm md:text-base">
+                {order.order_code}
+              </td>
 
-                  <td className="border px-4 py-2 hidden md:table-cell text-sm md:text-base">
-                    {order.created_at
-                      ? format(order.created_at, "dd/MM/yyyy 'ás' HH:mm:ss")
-                      : "Data indisponível"}
-                  </td>
-                  <td className="border px-4 py-2 text-xs md:text-base">
-                    {order.cliente?.nomeDoCliente}
-                  </td>
-                  <td className="border px-4 py-2 ">
-                    <div
-                      className={` opacity-100   rounded text-xs text-nowrap p-2 md:text-base  ${
-                        order.status_order === 1
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : order.status_order === 2
-                          ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-300"
-                          : order.status_order === 3
-                          ? "bg-blue-200 text-blue-800 hover:bg-blue-300"
-                          : order.status_order === 4
-                          ? "bg-purple-200 text-purple-800 hover:bg-purple-300"
-                          : order.status_order === 5
-                          ? "bg-orange-200 text-orange-800 hover:bg-orange-300"
-                          : order.status_order === 6
-                          ? "bg-green-300 text-green-900 "
-                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                      }`}
-                    >
-                      {order.status_order === 1
-                        ? "Pedido Aberto"
-                        : order.status_order === 2
-                        ? "Em produção"
-                        : order.status_order === 3
-                        ? "Pedido pronto"
-                        : order.status_order === 5
-                        ? "Pedido enviado"
-                        : order.status_order === 6 && "Entregue"}
-                    </div>
-                  </td>
-                  <td className="border px-4 py-2 text-sm md:text-base">
-                    <Dialog>
-                      <DialogTrigger>
-                        <span className="bg-amber-500 text-white px-2  text-xs md:text-base py-1 rounded hover:bg-amber-600">
-                          Ver
+              <td className="border px-4 py-2 hidden md:table-cell text-sm md:text-base">
+                {order.created_at
+                  ? format(order.created_at, "dd/MM/yyyy 'ás' HH:mm:ss")
+                  : "Data indisponível"}
+              </td>
+              <td className="border px-4 py-2 text-xs md:text-base">
+                {order.cliente?.nomeDoCliente}
+              </td>
+              <td className="border px-4 py-2 ">
+                <div
+                  className={` opacity-100   rounded text-xs text-nowrap p-2 md:text-base  ${
+                    order.status_order === 1
+                      ? "bg-green-100 text-green-700 hover:bg-green-200"
+                      : order.status_order === 2
+                      ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-300"
+                      : order.status_order === 3
+                      ? "bg-blue-200 text-blue-800 hover:bg-blue-300"
+                      : order.status_order === 4
+                      ? "bg-purple-200 text-purple-800 hover:bg-purple-300"
+                      : order.status_order === 5
+                      ? "bg-orange-200 text-orange-800 hover:bg-orange-300"
+                      : order.status_order === 6
+                      ? "bg-green-300 text-green-900 "
+                      : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  }`}
+                >
+                  {order.status_order === 1
+                    ? "Pedido recebido"
+                    : order.status_order === 2
+                    ? "Aguardando pagamento"
+                    : order.status_order === 3
+                    ? "Pagamento confirmado"
+                    : order.status_order === 5
+                    ? "Em separação"
+                    : order.status_order === 6 && "Entregue/Retirada"}
+                </div>
+              </td>
+              <td className="border px-4 py-2 text-sm md:text-base">
+                <Dialog>
+                  <DialogTrigger>
+                    <span className="bg-amber-500 text-white px-2  text-xs md:text-base py-1 rounded hover:bg-amber-600">
+                      Ver
+                    </span>
+                  </DialogTrigger>
+                  <DialogContent
+                    className="overflow-y-scroll h-96"
+                    aria-describedby={undefined}
+                  >
+                    <DialogHeader className="items-center">
+                      <DialogTitle>Detalhes</DialogTitle>
+                    </DialogHeader>
+                    <div className=" md:hidden space-y-2 flex flex-col items-center justify-center">
+                      <div className="flex justify-between rounded-lg items-center p-1">
+                        <span className="text-md font-semibold">
+                          Valor total do pedido:
                         </span>
-                      </DialogTrigger>
-                      <DialogContent
-                        className="overflow-y-scroll h-96"
-                        aria-describedby={undefined}
-                      >
-                        <DialogHeader className="items-center">
-                          <DialogTitle>Detalhes</DialogTitle>
-                        </DialogHeader>
-                        <div className=" md:hidden space-y-2 flex flex-col items-center justify-center">
-                          <div className="flex justify-between rounded-lg items-center p-1">
-                            <span className="text-md font-semibold">
-                              Valor total do pedido:
-                            </span>
-                            <span>
-                              {order.total?.toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              })}
+                        <span>
+                          {order.total?.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-lg font-semibold text-center">
+                      Lista de produtos:
+                    </div>
+                    <div className=" rounded-lg text-sm space-y-2 p-2 md:text-base">
+                      {order.itens.map((product) => (
+                        <div
+                          key={product.produtoId}
+                          className="flex flex-col border-2 space-y-2 p-2 rounded-lg items-center"
+                        >
+                          <div>
+                            <span className="font-semibold">
+                              {product.nome}
+                            </span>{" "}
+                            -{" "}
+                            <span className="font-semibold">
+                              {product.categoria}
                             </span>
                           </div>
+                          <span>Quantidade: {product.quantidade}</span>
+                          <span>
+                            {product.preco?.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </span>
                         </div>
-                        <div className="text-lg font-semibold text-center">
-                          Lista de produtos:
-                        </div>
-                        <div className=" rounded-lg text-sm space-y-2 p-2 md:text-base">
-                          {order.itens.map((product) => (
-                            <div
-                              key={product.produtoId}
-                              className="flex flex-col border-2 space-y-2 p-2 rounded-lg items-center"
-                            >
-                              <div>
-                                <span className="font-semibold">
-                                  {product.nome}
-                                </span>{" "}
-                                -{" "}
-                                <span className="font-semibold">
-                                  {product.categoria}
-                                </span>
-                              </div>
-                              <span>Quantidade: {product.quantidade}</span>
-                              <span>
-                                {product.preco?.toLocaleString("pt-BR", {
-                                  style: "currency",
-                                  currency: "BRL",
-                                })}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </td>
-                  <td className="border px-4 py-2 hidden md:table-cell">
-                    {order.total?.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </td>
-                  <td className="border px-4 py-2 hidden md:table-cell"></td>
-                </tr>
-              ))}
-            </>
-          ) : (
-            <>
-              {orderList.map((order) => (
-                <tr
-                  key={order.id}
-                  className={
-                    order.created_at === undefined
-                      ? "hidden"
-                      : "hover:bg-gray-50"
-                  }
-                >
-                  <td className="border px-4 py-2 hidden md:table-cell text-sm md:text-base">
-                    {order.order_code}
-                  </td>
-
-                  <td className="border px-4 py-2 hidden md:table-cell text-sm md:text-base">
-                    {order.created_at
-                      ? format(order.created_at, "dd/MM/yyyy 'ás' HH:mm:ss")
-                      : "Data indisponível"}
-                  </td>
-                  <td className="border px-4 py-2 text-xs md:text-base">
-                    {order.cliente?.nomeDoCliente}
-                  </td>
-                  <td className="border px-4 py-2 ">
-                    <div
-                      className={`opacity-100 rounded text-xs text-nowrap p-2 md:text-base  ${
-                        order.status_order === 1
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : order.status_order === 2
-                          ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-300"
-                          : order.status_order === 3
-                          ? "bg-blue-200 text-blue-800 hover:bg-blue-300"
-                          : order.status_order === 4
-                          ? "bg-purple-200 text-purple-800 hover:bg-purple-300"
-                          : order.status_order === 5
-                          ? "bg-orange-200 text-orange-800 hover:bg-orange-300"
-                          : order.status_order === 6
-                          ? "bg-green-300 text-green-900 "
-                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                      }`}
-                    >
-                      {order.status_order === 1
-                        ? "Pedido Aberto"
-                        : order.status_order === 2
-                        ? "Em produção"
-                        : order.status_order === 3
-                        ? "Pedido pronto"
-                        : order.status_order === 5
-                        ? "Pedido enviado"
-                        : order.status_order === 6 && "Entregue"}
+                      ))}
                     </div>
-                  </td>
-                  <td className="border px-4 py-2 text-sm md:text-base">
-                    <Dialog>
-                      <DialogTrigger>
-                        <span className="bg-amber-500 text-white px-2  text-xs md:text-base py-1 rounded hover:bg-amber-600">
-                          Ver
-                        </span>
-                      </DialogTrigger>
-                      <DialogContent
-                        className="overflow-y-scroll h-96"
-                        aria-describedby={undefined}
-                      >
-                        <DialogHeader className="items-center">
-                          <DialogTitle>Detalhes </DialogTitle>
-                        </DialogHeader>
-                        <div className=" md:hidden space-y-2 flex flex-col items-center justify-center">
-                          <div className="flex gap-1 justify-between  items-center p-1">
-                            <span className="text-md font-semibold">
-                              Valor total do pedido:
-                            </span>
-                            <span>
-                              {order.total?.toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-lg font-semibold text-center">
-                          Lista de produtos:
-                        </div>
-                        <div className=" rounded-lg text-sm space-y-2 p-2 md:text-base">
-                          {order.itens.map((product) => (
-                            <div
-                              key={product.produtoId}
-                              className="flex flex-col border-2 space-y-2 p-2 rounded-lg items-center"
-                            >
-                              <div>
-                                <span className="font-semibold">
-                                  {product.nome}
-                                </span>{" "}
-                                -{" "}
-                                <span className="font-semibold">
-                                  {product.categoria}
-                                </span>
-                              </div>
-                              <span>Quantidade: {product.quantidade}</span>
-                              <span>
-                                {product.preco?.toLocaleString("pt-BR", {
-                                  style: "currency",
-                                  currency: "BRL",
-                                })}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </td>
-                  <td className="border px-4 py-2 hidden md:table-cell">
-                    {order.total?.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </td>
-                </tr>
-              ))}
-            </>
-          )}
+                  </DialogContent>
+                </Dialog>
+              </td>
+              <td className="border px-4 py-2 hidden md:table-cell">
+                {order.total?.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

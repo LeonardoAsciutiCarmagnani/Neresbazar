@@ -397,11 +397,11 @@ export default function GetOrdersComponent() {
   };
 
   const selectOptions = [
-    { value: 1, label: "Pedido Aberto" },
-    { value: 2, label: "Em produção" },
-    { value: 3, label: "Pedido pronto" },
-    { value: 5, label: "Pedido enviado" },
-    { value: 6, label: "Entregue" },
+    { value: 1, label: "Pedido recebido" },
+    { value: 2, label: "Aguardando pagamento" },
+    { value: 3, label: "Pagamento confirmado" },
+    { value: 5, label: "Em separação" },
+    { value: 6, label: "Entregue/Retirada" },
   ];
 
   const formattedFrom = range?.from

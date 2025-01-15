@@ -8,6 +8,7 @@ import ToastNotifications from "../Toasts/toasts";
 import axios from "axios";
 import apiBaseUrl from "@/lib/apiConfig";
 import type { Product } from "@/Contexts/cartContext";
+import { format } from "date-fns";
 
 interface UserData {
   cpf: string;
@@ -16,10 +17,10 @@ interface UserData {
   name: string;
   type_user: string;
   CEP: string;
-  IBGE: string;
+  IBGE: number;
   numberHouse: string;
   phoneNumber: string;
-  neighborhood: string;
+  bairro: string;
   complement: string;
   logradouro: string;
 }
@@ -61,7 +62,7 @@ export type ClientData = {
 export type EnderecoDeEntrega = {
   bairro: string;
   cep: string;
-  codigoIbge: string;
+  codigoIbge: number;
   complemento: string;
   logradouro: string;
   numero: string;
@@ -120,6 +121,14 @@ const Checkout: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    console.log(user?.IBGE);
+    if (user) {
+      const data = createOrderObject(user, listProductsInCart);
+      console.log("Dados para o backEnd", data);
+    }
+  }, [user]);
+
   const formatCPF = (cpf: string | null): string => {
     if (!cpf) return "";
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
@@ -135,11 +144,13 @@ const Checkout: React.FC = () => {
     user: UserData,
     listProductsInCart: Product[]
   ): OrderProps => {
+    const formattedDate = format(new Date(), "yyyy-MM-dd HH:mm:ss");
+
     return {
       IdClient: user.user_id,
       order_code: 0,
       status_order: 0,
-      created_at: new Date().toISOString(),
+      created_at: formattedDate,
       total: parseFloat(
         listProductsInCart
           .reduce(
@@ -152,20 +163,22 @@ const Checkout: React.FC = () => {
       cliente: {
         documento: user.cpf,
         email: user.email,
+        inscricaoEstadual: "",
         nomeDoCliente: user.name,
+        nomeFantasia: "",
       },
       enderecoDeCobranca: {
-        bairro: user.neighborhood,
+        bairro: user.bairro,
         cep: user.CEP,
-        codigoIbge: user.IBGE,
+        codigoIbge: Number(user.IBGE),
         complemento: user.complement,
         logradouro: user.logradouro,
         numero: user.numberHouse,
       },
       enderecoDeEntrega: {
-        bairro: user.neighborhood,
+        bairro: user.bairro,
         cep: user.CEP,
-        codigoIbge: user.IBGE,
+        codigoIbge: Number(user.IBGE),
         complemento: user.complement,
         logradouro: user.logradouro,
         numero: user.numberHouse,
@@ -207,9 +220,17 @@ const Checkout: React.FC = () => {
     }
     const order = createOrderObject(user, listProductsInCart);
     try {
-      const response = await axios.post(`${apiBaseUrl}/post-order`, {
-        ...order,
-      });
+      const response = await axios.post(
+        `${apiBaseUrl}/post-order`,
+        {
+          ...order,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.status === 201) {
         toastSuccess("Pedido realizado com sucesso.");

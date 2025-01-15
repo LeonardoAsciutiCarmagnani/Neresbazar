@@ -19,7 +19,7 @@ const SchoolSupplies: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
 
   useEffect(() => {
-    setProducts("Papelaria");
+    setProducts("TRADICIONAIS");
   }, [setProducts]);
 
   useEffect(() => {

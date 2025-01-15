@@ -115,7 +115,7 @@ const SignupForm = () => {
         numberHouse: data.numberHouse,
         phoneNumber: data.phoneNumber,
         CEP: cepUnmasked,
-        IBGE: addressData?.ibge,
+        IBGE: Number(addressData?.ibge),
         bairro: addressData?.bairro,
         localidade: addressData?.localidade,
         logradouro: addressData?.logradouro,
