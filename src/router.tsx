@@ -11,6 +11,7 @@ import Checkout from "./_components/CheckoutForm/checkoutForm";
 import Loader from "./_components/Loader/PageLoader/loader";
 import GetOrdersComponent from "./_components/GetOrders";
 import { GetOrdersClientComponent } from "./_components/GetOrdersClient";
+import ProtectedAdminRoute from "./_components/ProtectedRoute/protectedAdminRoute";
 // import Loader from "./_components/Loader/ImageLoader/loader";
 // import { Checkout } from "./Pages/Checkout";
 
@@ -114,7 +115,11 @@ export const router = createBrowserRouter(
             </div>
           }
         >
-          <GetOrdersComponent />
+          <ProtectedRoute>
+            <ProtectedAdminRoute>
+              <GetOrdersComponent />
+            </ProtectedAdminRoute>
+          </ProtectedRoute>
         </Suspense>
       ),
     },
@@ -128,7 +133,9 @@ export const router = createBrowserRouter(
             </div>
           }
         >
-          <GetOrdersClientComponent />
+          <ProtectedRoute>
+            <GetOrdersClientComponent />
+          </ProtectedRoute>
         </Suspense>
       ),
     },
