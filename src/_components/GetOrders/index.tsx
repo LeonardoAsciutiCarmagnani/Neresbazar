@@ -708,78 +708,68 @@ export default function GetOrdersComponent() {
                   <td className="border px-4 py-2 text-sm md:text-base">
                     <Dialog>
                       <DialogTrigger>
-                        <span className="bg-amber-500 text-white px-2  text-xs md:text-base py-1 rounded hover:bg-amber-600">
+                        <span className="bg-[#f7633d] text-white px-2  text-xs md:text-base py-1 rounded hover:bg-amber-600">
                           Ver
                         </span>
                       </DialogTrigger>
-                      <DialogContent
-                        className="overflow-y-scroll h-96"
-                        aria-describedby={undefined}
-                      >
-                        <DialogHeader className="items-center">
-                          <DialogTitle>Detalhes</DialogTitle>
-                        </DialogHeader>
-                        <div className=" md:hidden space-y-2 flex flex-col items-center justify-center">
-                          <div className="flex gap-1 justify-between rounded-lg items-center p-1">
-                            <span className="text-base font-semibold">
-                              Valor total do pedido:
-                            </span>
-                            <span>
-                              {order.total?.toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              })}
-                            </span>
-                          </div>
-
-                          {/* <Popover>
-                            <PopoverTrigger asChild>
-                              <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                Imprimir
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent>
-                              <div className="flex flex-col">
-                                <span>Escolha o tipo de impressão:</span>
-                                <div className="flex gap-2">
-                                  <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                    Imprimir A4
-                                  </Button>
-                                  <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                    Imprimir Térmica
-                                  </Button>
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover> */}
-                        </div>
-                        <div className="text-lg font-semibold text-center">
-                          Lista de produtos:
-                        </div>
-                        <div className=" rounded-lg text-sm space-y-2 p-2 md:text-base">
-                          {order.itens.map((product) => (
-                            <div
-                              key={product.produtoId}
-                              className="flex flex-col border-2 space-y-2 p-2 rounded-lg items-center"
-                            >
-                              <div>
-                                <span className="font-semibold">
-                                  {product.nome}
-                                </span>{" "}
-                                -{" "}
-                                <span className="font-semibold">
-                                  {product.categoria}
-                                </span>
-                              </div>
-                              <span>Quantidade: {product.quantidade}</span>
-                              <span>
-                                {product.preco?.toLocaleString("pt-BR", {
+                      <DialogContent className="overflow-y-auto max-h-[90vh] bg-gray-50 p-6 sm:p-8 md:p-10">
+                        <div className="space-y-8">
+                          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 md:p-10 border border-gray-200">
+                            <div className="flex flex-col items-center mb-6">
+                              <span className="text-4xl font-bold text-gray-800">
+                                {order.total?.toLocaleString("pt-BR", {
                                   style: "currency",
                                   currency: "BRL",
                                 })}
                               </span>
+                              <span className="text-sm text-gray-500 mt-1">
+                                ({order.itens.length}{" "}
+                                {order.itens.length === 1 ? "item" : "itens"})
+                              </span>
                             </div>
-                          ))}
+
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-700 pl-4 border-l-4 border-[#f7633d] mb-4">
+                                Produtos:
+                              </h3>
+                              <div className="bg-white rounded-2xl shadow-xl divide-y divide-gray-200 border border-gray-200 overflow-hidden">
+                                {order.itens.map((product) => (
+                                  <div
+                                    key={product.produtoId}
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6"
+                                  >
+                                    <div className="flex flex-col space-y-2 col-span-2">
+                                      <div className="flex items-center">
+                                        <span className="font-bold text-xl text-gray-800">
+                                          {product.nome}
+                                        </span>
+                                      </div>
+                                      <span className="text-gray-50 text-sm bg-[#f7633d] px-3 py-1 rounded-full self-start font-semibold">
+                                        {product.categoria}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row items-end md:items-center gap-4 md:gap-6 md:justify-end">
+                                      <span className="text-gray-600 text-base">
+                                        Qtd:{" "}
+                                        <span className="font-medium">
+                                          {product.quantidade}
+                                        </span>
+                                      </span>
+                                      <span className="font-semibold text-lg text-gray-800">
+                                        {product.preco?.toLocaleString(
+                                          "pt-BR",
+                                          {
+                                            style: "currency",
+                                            currency: "BRL",
+                                          }
+                                        )}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </DialogContent>
                     </Dialog>
