@@ -10,6 +10,7 @@ import {
   Phone,
   House,
   MapPinnedIcon,
+  CheckIcon,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -28,6 +29,7 @@ import InputMask from "react-input-mask";
 import { FirebaseError } from "firebase/app";
 import FetchCEPComponent from "../FetchCEP/fetchCEP";
 import type { EnderecoData } from "../FetchCEP/fetchCEP";
+import { cpf } from "cpf-cnpj-validator";
 
 interface FormCreateUser {
   name: string;
@@ -48,6 +50,7 @@ interface FormCreateUser {
 }
 
 const SignupForm = () => {
+  const [cpfSuccess, setCPFSuccess] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -63,6 +66,16 @@ const SignupForm = () => {
   } = useForm<FormCreateUser>({
     mode: "onBlur",
   });
+
+  const validateCPFOrCNPJ = (value: string) => {
+    // Validação de CPF
+    if (!cpf.isValid(value)) {
+      toastError("Por favor, insira um CPF válido.");
+      setCPFSuccess(false);
+    } else {
+      setCPFSuccess(true);
+    }
+  };
 
   const handleCreateUser: SubmitHandler<FormCreateUser> = async (data) => {
     console.log("HandleCreateUser chamado");
@@ -208,7 +221,9 @@ const SignupForm = () => {
                     required: "Nome é obrigatório",
                   })}
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    errors.name ? "border-red-500" : "border-gray-300"
+                    errors.name
+                      ? "border-red-500 border-[0.12rem] bg-red-50/60"
+                      : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
               </div>
@@ -237,7 +252,9 @@ const SignupForm = () => {
                     },
                   })}
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    errors.email ? "border-red-500" : "border-gray-300"
+                    errors.email
+                      ? "border-red-500 border-[0.12rem] bg-red-50/60"
+                      : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
               </div>
@@ -263,7 +280,9 @@ const SignupForm = () => {
                     required: "Telefone é obrigatório.",
                   })}
                   className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    errors.phoneNumber ? "border-red-500" : "border-gray-300"
+                    errors.phoneNumber
+                      ? "border-red-500 border-[0.12rem] bg-red-50/60"
+                      : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
               </div>
@@ -276,27 +295,36 @@ const SignupForm = () => {
               >
                 CPF
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IdCard className="h-5 w-5 text-[#f06139]" />
+              <div className="flex items-center gap-x-4">
+                <div className="mt-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <IdCard className="h-5 w-5 text-[#f06139]" />
+                  </div>
+                  <InputMask
+                    mask="999.999.999-99"
+                    id="cpf"
+                    {...register("cpf", {
+                      required: "O CPF é obrigatório",
+                      onBlur: (e) => validateCPFOrCNPJ(e.target.value),
+                      validate: (value) => {
+                        const cpf = value.replace(/[.-]/g, "");
+                        if (cpf.length !== 11) return "CPF inválido";
+
+                        return true;
+                      },
+                    })}
+                    placeholder="123.456.789-00"
+                    className="appearance-none block w-[16rem] pl-10 pr-3 py-2 border border-gray-300
+                   rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500"
+                  />
                 </div>
-                <InputMask
-                  mask="999.999.999-99"
-                  id="cpf"
-                  {...register("cpf", {
-                    required: "O CPF é obrigatório",
-                    validate: (value) => {
-                      const cpf = value.replace(/[.-]/g, "");
-                      if (cpf.length !== 11) return "CPF inválido";
-                      // Adicione aqui uma validação mais robusta do CPF, se necessário
-                      return true;
-                    },
-                  })}
-                  placeholder="123.456.789-00"
-                  className={`appearance-none block w-full pl-10 pr-3 py-2 border ${
-                    errors.cpf ? "border-red-500" : "border-gray-300"
-                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#f06139] focus:border-orange-500`}
-                />
+                <div>
+                  {cpfSuccess && (
+                    <span>
+                      <CheckIcon className="h-8 w-8 text-green-600" />
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -319,8 +347,10 @@ const SignupForm = () => {
                       {...register("CEP", { required: "O CEP é obrigatório" })}
                       onBlur={() => trigger("CEP")}
                       placeholder="CEP"
-                      className={`flex appearance-none w-full pr-3 py-2 border ${
-                        errors.CEP ? "border-red-500" : "border-gray-300"
+                      className={`flex text-center text-sm appearance-none w-full pr-3 py-2 border ${
+                        errors.CEP
+                          ? "border-red-500 border-[0.12rem] bg-red-50/60"
+                          : "border-gray-300"
                       } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                     />
                     <FetchCEPComponent
@@ -328,17 +358,12 @@ const SignupForm = () => {
                       onCEPDataReceived={(cepData) => setAddessData(cepData)}
                     />
                   </div>
-                  {errors.CEP && (
-                    <div className="text-red-500 text-sm mt-1">
-                      {errors.CEP.message}
-                    </div>
-                  )}
                 </div>
               </div>
               <div>
                 <label
                   htmlFor="houseNumber"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-nowrap text-sm font-medium text-gray-700"
                 >
                   Número da casa
                 </label>
@@ -350,15 +375,15 @@ const SignupForm = () => {
                     <input
                       id="numberHouse"
                       type="number"
-                      placeholder="0000"
+                      placeholder="123"
                       {...register("numberHouse", {
                         required: "Número da casa é obrigatório",
                       })}
-                      className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
+                      className={`appearance-none block w-[7rem] pl-10 pr-10 py-2 border ${
                         errors.numberHouse
-                          ? "border-red-500"
+                          ? "border-red-500 border-[0.12rem] bg-red-50/60"
                           : "border-gray-300"
-                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
+                      } rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                     />
                   </div>
                 </div>
@@ -385,7 +410,9 @@ const SignupForm = () => {
                     required: "A senha é obrigatória",
                   })}
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
-                    errors.password ? "border-red-500" : "border-gray-300"
+                    errors.password
+                      ? "border-red-500 border-[0.12rem] bg-red-50/60"
+                      : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
                 <button
@@ -426,15 +453,10 @@ const SignupForm = () => {
                   })}
                   className={`appearance-none block w-full pl-10 pr-10 py-2 border ${
                     errors.confirmPassword
-                      ? "border-red-500"
+                      ? "border-red-500 border-[0.12rem] bg-red-50/60"
                       : "border-gray-300"
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
                 />
-                {errors.confirmPassword && (
-                  <div className="text-red-500 text-sm mt-1">
-                    {errors.confirmPassword.message}
-                  </div>
-                )}
               </div>
             </div>
 
