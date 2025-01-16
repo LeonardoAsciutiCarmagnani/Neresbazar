@@ -18,6 +18,7 @@ import type { Product } from "@/Contexts/cartContext";
 import { format } from "date-fns";
 import UseAdminOrderCompleted from "../PushNotification/adminOrderCompleted";
 import UseOrderCompleted from "../PushNotification/orderCompleted";
+import SubmittingOrder from "../SubmitingOrder";
 
 interface UserData {
   cpf: string;
@@ -84,6 +85,7 @@ export type MeioDePagamento = {
 };
 
 const Checkout: React.FC = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cpf, setCpf] = useState<string | null>(null);
   const [user, setUser] = useState<UserData | null>(null);
   const navigate = useNavigate();
@@ -225,6 +227,7 @@ const Checkout: React.FC = () => {
   };
 
   const handleFinishOrder = async () => {
+    setIsSubmitting(true);
     if (!user) {
       toastError("Usuário não encontrado.");
       return;
@@ -379,6 +382,7 @@ const Checkout: React.FC = () => {
           {" "}
           {/* Alterado para flex-col */}
           <button
+            disabled={isSubmitting}
             onClick={() => handleFinishOrder()} // Substituído por navigate(-1)
             className="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition-colors"
           >
@@ -392,6 +396,7 @@ const Checkout: React.FC = () => {
           </button>
         </div>
       </div>
+      <SubmittingOrder isSubmitting={isSubmitting} />
     </div>
   );
 };
