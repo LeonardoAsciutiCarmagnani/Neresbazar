@@ -43,6 +43,7 @@ interface IFormInput {
   selectDate: string;
   selectStatus: StatusProps;
   selectData?: string;
+  inputLinkPayment?: string;
 }
 
 export type ClientData = {
@@ -79,6 +80,7 @@ export type OrderSaleTypes = {
   cliente: ClientData | null;
   enderecoDeCobranca: EnderecoDeEntrega | null;
   enderecoDeEntrega: EnderecoDeEntrega;
+  paymentLink?: string;
   itens: {
     produtoId?: string;
     nome?: string;
@@ -100,6 +102,7 @@ export default function GetOrdersComponent() {
   const [selectedOrderList, setSelectedOrderList] = useState<OrderSaleTypes[]>(
     []
   );
+  const [paymentLink, setPaymentLink] = useState<string | null>(null);
   const [range, setRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -396,6 +399,23 @@ export default function GetOrdersComponent() {
     }
   };
 
+  async function handleProvideLink(orderId: string) {
+    console.log("Link fornecido com sucesso", orderId);
+
+    console.log("Link fornecido com sucesso", paymentLink);
+    const searchOrder = orderList.find((order) => order.id === orderId);
+    console.log(searchOrder);
+
+    if (searchOrder) {
+      const documentRef = doc(firestore, "sales_orders", orderId);
+      await updateDoc(documentRef, {
+        paymentLink: paymentLink,
+      });
+
+      console.log("Link de pagamento enviado com sucesso !");
+    }
+  }
+
   const selectOptions = [
     { value: 1, label: "Pedido recebido" },
     { value: 2, label: "Aguardando pagamento" },
@@ -629,6 +649,7 @@ export default function GetOrdersComponent() {
               Cliente
             </th>
             <th className="border md:px-4 py-2 text-xs md:text-base">Status</th>
+            <th className="border md:px-4 py-2 text-xs md:text-base">Link</th>
             <th className="border md:px-4 py-2 text-xs md:text-base">
               Detalhes
             </th>
@@ -704,6 +725,40 @@ export default function GetOrdersComponent() {
                         );
                       })}
                     </select>
+                  </td>
+                  <td
+                    className={`${
+                      order.status_order <= 2 ? "visible" : "invisible"
+                    }  border px-4 py-2 text-sm md:text-base`}
+                  >
+                    <Popover>
+                      <PopoverTrigger className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
+                        Link
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <div id="linkPayment" className="flex flex-col gap-2">
+                          <span>
+                            Disponibilize o link de pagamento do pedido:
+                          </span>
+                          <Input
+                            form="linkPayment"
+                            type="text"
+                            placeholder="Link de pagamento"
+                            onChange={(e) =>
+                              setPaymentLink(e.target.value || null)
+                            }
+                            className="border px-4 py-2 rounded w-full text-sm  placeholder:text-sm"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => handleProvideLink(order.id || "")}
+                            className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded"
+                          >
+                            Disponibilizar
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </td>
                   <td className="border px-4 py-2 text-sm md:text-base">
                     <Dialog>

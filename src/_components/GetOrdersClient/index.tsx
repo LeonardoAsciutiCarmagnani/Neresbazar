@@ -21,6 +21,7 @@ import { ptBR } from "date-fns/locale";
 // import { useNavigate } from "react-router-dom";
 import { OrderSaleTypes } from "../GetOrders";
 import Sidebar from "../Sidebar/sidebar";
+import { Input } from "@/components/ui/input";
 
 interface StatusProps {
   [key: number]: string;
@@ -132,39 +133,6 @@ export function GetOrdersClientComponent() {
     }
   };
 
-  /*  const handlePrintItensClient = (pedido: OrderSaleTypes) => {
-    let arrayForPrint: {
-      produtoId?: string;
-      nome?: string;
-      preco?: number;
-      categoria?: string;
-      quantidade: number;
-      precoUnitarioBruto?: number;
-      precoUnitarioLiquido?: number;
-    }[] = [];
-
-    const orderNumber = pedido.order_code;
-
-    arrayForPrint = pedido.itens.map((item, index) => {
-      console.log(item.categoria);
-      return { ...item, id_seq: index + 1 };
-    });
-
-    const user = pedido.cliente &&
-      pedido.created_at && {
-        IdClient: pedido.IdClient,
-        document: pedido.cliente?.documento,
-        userName: pedido.cliente?.nomeDoCliente,
-        userEmail: pedido.cliente?.email,
-        userIE: pedido.cliente.inscricaoEstadual,
-        date: pedido?.created_at,
-      };
-
-    navigate("/printPageClient", {
-      state: { arrayForPrint, user, orderNumber },
-    });
-  }; */
-
   const formattedFrom = range?.from
     ? format(range.from, "dd/MM/yyyy")
     : "--/--/----";
@@ -244,6 +212,9 @@ export function GetOrdersClientComponent() {
             </th>
             <th className="border md:px-4 py-2 text-sm md:text-base">Status</th>
             <th className="border md:px-4 py-2 text-sm md:text-base">
+              Pagamento
+            </th>
+            <th className="border md:px-4 py-2 text-sm md:text-base">
               Detalhes
             </th>
             <th className="border md:px-4 py-2 text-sm md:text-base hidden md:table-cell">
@@ -299,6 +270,26 @@ export function GetOrdersClientComponent() {
                     ? "Em separação"
                     : order.status_order === 6 && "Entregue/Retirada"}
                 </div>
+              </td>
+              <td className="border px-4 py-2 text-sm md:text-base">
+                <Popover>
+                  <PopoverTrigger className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
+                    Link
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    <div id="linkPayment" className="flex flex-col gap-2">
+                      <span>Disponibilize o link de pagamento do pedido:</span>
+                      <Input
+                        form="linkPayment"
+                        type="text"
+                        disabled
+                        placeholder="Link de pagamento"
+                        value={order.paymentLink}
+                        className="border px-4 py-2 rounded w-full text-sm  placeholder:text-sm"
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </td>
               <td className="border px-4 py-2 text-sm md:text-base">
                 <Dialog>
