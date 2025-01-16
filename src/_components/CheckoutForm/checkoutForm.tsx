@@ -87,7 +87,10 @@ const Checkout: React.FC = () => {
   const [cpf, setCpf] = useState<string | null>(null);
   const [user, setUser] = useState<UserData | null>(null);
   const navigate = useNavigate();
-  const { listProductsInCart } = useZustandContext();
+  const { listProductsInCart, clearListProductsInCart } = useZustandContext();
+  const { toastSuccess, toastError } = ToastNotifications();
+  const sendAdminOrderCompletedPush = UseAdminOrderCompleted();
+  const sendOrderCompletedPush = UseOrderCompleted();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedUser");
@@ -222,10 +225,6 @@ const Checkout: React.FC = () => {
   };
 
   const handleFinishOrder = async () => {
-    const { toastSuccess, toastError } = ToastNotifications();
-    const sendAdminOrderCompletedPush = UseAdminOrderCompleted();
-    const sendOrderCompletedPush = UseOrderCompleted();
-
     if (!user) {
       toastError("Usuário não encontrado.");
       return;
@@ -268,6 +267,8 @@ const Checkout: React.FC = () => {
               }),
             ]);
             console.log("Notificações push enviadas com sucesso.");
+            clearListProductsInCart(listProductsInCart);
+            navigate("/select-category");
           } else {
             console.error("Documento do cliente não encontrado.");
             toastError(
