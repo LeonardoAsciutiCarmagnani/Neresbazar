@@ -740,7 +740,7 @@ export default function GetOrdersComponent() {
                                   >
                                     <div className="flex flex-col space-y-2 col-span-2">
                                       <div className="flex items-center">
-                                        <span className="font-bold text-xl text-gray-800">
+                                        <span className="font-bold text-sm text-gray-800 w-[10rem] truncate">
                                           {product.nome}
                                         </span>
                                       </div>
@@ -780,28 +780,6 @@ export default function GetOrdersComponent() {
                       currency: "BRL",
                     })}
                   </td>
-                  {/* <td className="border px-4 py-2 hidden md:table-cell">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                          Imprimir
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent>
-                        <div className="flex flex-col">
-                          <span>Escolha o tipo de impressão:</span>
-                          <div className="flex gap-2">
-                            <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                              Imprimir A4
-                            </Button>
-                            <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                              Imprimir Térmica
-                            </Button>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </td> */}
                 </tr>
               ))}
             </>
@@ -900,26 +878,6 @@ export default function GetOrdersComponent() {
                               })}
                             </span>
                           </div>
-                          {/*  <Popover>
-                            <PopoverTrigger asChild>
-                              <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                Imprimir
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent>
-                              <div className="flex flex-col">
-                                <span>Escolha o tipo de impressão:</span>
-                                <div className="flex gap-2">
-                                  <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                    Imprimir A4
-                                  </Button>
-                                  <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                    Imprimir Térmica
-                                  </Button>
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover> */}
                         </div>
                         <div className="text-lg font-semibold text-center">
                           Lista de produtos:

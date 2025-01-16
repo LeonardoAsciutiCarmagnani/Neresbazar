@@ -315,8 +315,8 @@ export function GetOrdersClientComponent() {
                       <DialogTitle>Detalhes</DialogTitle>
                     </DialogHeader>
                     <div className=" md:hidden space-y-2 flex flex-col items-center justify-center">
-                      <div className="flex justify-between rounded-lg items-center p-1">
-                        <span className="text-md font-semibold">
+                      <div className="flex gap-1 justify-between rounded-lg items-center p-1">
+                        <span className="text-base font-semibold">
                           Valor total do pedido:
                         </span>
                         <span>

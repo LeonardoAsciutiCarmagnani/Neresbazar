@@ -379,7 +379,7 @@ const SignupForm = () => {
                       {...register("numberHouse", {
                         required: "Número da casa é obrigatório",
                       })}
-                      className={`appearance-none block w-[7rem] pl-10 pr-10 py-2 border ${
+                      className={`appearance-none block w-[10rem] pl-10 pr-10 py-2 border justify-center${
                         errors.numberHouse
                           ? "border-red-500 border-[0.12rem] bg-red-50/60"
                           : "border-gray-300"
