@@ -3,17 +3,17 @@ import axios from "axios";
 
 interface paymentLinkAddedProps {
   orderCode: string;
-  customerName: string;
+  customerName: string | undefined;
   phoneNumber: number;
-  paymentLink: string;
+  paymentLink: string | null;
 }
 
-export default function usePaymentLinkAdded() {
+export default function UsePaymentLinkAdded() {
   const handlePaymentLinkAddedPush = async (props: paymentLinkAddedProps) => {
     const { orderCode, customerName, phoneNumber, paymentLink } = props;
     try {
       const response = await axios.post(
-        `${apiBaseUrl}/push/admin/order-completed`,
+        `${apiBaseUrl}/push/payment-link-added`,
         {
           orderCode,
           customerName,

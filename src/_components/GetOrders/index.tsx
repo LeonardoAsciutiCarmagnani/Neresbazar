@@ -29,9 +29,10 @@ import { DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { Calendar } from "@/components/ui/calendar";
 import { ptBR } from "date-fns/locale";
-import { Trash } from "lucide-react";
+import { LinkIcon, Trash } from "lucide-react";
 import { firestore } from "../../../firebaseConfig";
 import Sidebar from "../Sidebar/sidebar";
+import UsePaymentLinkAdded from "../PushNotification/paymentLinkAdded";
 
 interface StatusProps {
   [key: number]: string;
@@ -70,8 +71,8 @@ export type MeioDePagamento = {
 };
 
 export type OrderSaleTypes = {
-  IdClient?: string;
-  order_code: number;
+  IdClient: string;
+  order_code: string;
   status_order: number;
   created_at?: string;
   updated_at?: string;
@@ -250,41 +251,6 @@ export default function GetOrdersComponent() {
     }
   };
 
-  /*   const handlePrintItens = (pedido: OrderSaleTypes, type: string) => {
-    console.log("type: ", type);
-
-    let arrayForPrint: {
-      produtoId?: string;
-      nome?: string;
-      preco?: number;
-      categoria?: string;
-      quantidade: number;
-      precoUnitarioBruto?: number;
-      precoUnitarioLiquido?: number;
-    }[] = [];
-
-    const orderNumber = pedido.order_code;
-
-    arrayForPrint = pedido.itens.map((item, index) => {
-      console.log(item.categoria);
-      return { ...item, id_seq: index + 1 };
-    });
-
-    const user = pedido.cliente &&
-      pedido.created_at && {
-        IdClient: pedido.IdClient,
-        document: pedido.cliente?.documento,
-        userName: pedido.cliente?.nomeDoCliente,
-        userEmail: pedido.cliente?.email,
-        userIE: pedido.cliente.inscricaoEstadual,
-        date: pedido?.created_at,
-      };
-
-    navigate("/printPage", {
-      state: { arrayForPrint, user, type, orderNumber },
-    });
-  };
- */
   const handleSelectAllOrders = () => {
     const allSelected =
       filteredOrders.length > 0
@@ -400,19 +366,63 @@ export default function GetOrdersComponent() {
   };
 
   async function handleProvideLink(orderId: string) {
-    console.log("Link fornecido com sucesso", orderId);
+    const sendPaymentLinkNotification = UsePaymentLinkAdded();
 
-    console.log("Link fornecido com sucesso", paymentLink);
+    console.log("Link fornecido com sucesso", orderId);
+    console.log("Link fornecido com sucesso", paymentLink); // Verifique se paymentLink está definido aqui
+
     const searchOrder = orderList.find((order) => order.id === orderId);
+    const idClient = searchOrder?.IdClient;
     console.log(searchOrder);
 
     if (searchOrder) {
-      const documentRef = doc(firestore, "sales_orders", orderId);
-      await updateDoc(documentRef, {
-        paymentLink: paymentLink,
-      });
+      const saleOrderRef = doc(firestore, "sales_orders", orderId);
 
-      console.log("Link de pagamento enviado com sucesso !");
+      try {
+        let phoneNumber = null;
+        if (idClient) {
+          const clientRef = doc(firestore, "clients", idClient);
+          const clientDoc = await getDoc(clientRef);
+
+          if (clientDoc.exists()) {
+            phoneNumber = clientDoc.data().phoneNumber;
+            console.log("Número de telefone do cliente:", phoneNumber);
+          } else {
+            console.error("Documento do cliente não encontrado.");
+          }
+        } else {
+          console.error("ID do cliente não encontrado no pedido.");
+        }
+
+        // Atualizar documento do pedido
+        await updateDoc(saleOrderRef, {
+          paymentLink: paymentLink,
+        });
+        console.log("Link de pagamento enviado com sucesso !");
+
+        // Enviar notificação push APÓS atualizar o documento no Firestore
+        if (phoneNumber) {
+          await sendPaymentLinkNotification({
+            orderCode: searchOrder.order_code, // Assumindo que existe um campo order_code
+            customerName: searchOrder.cliente?.nomeDoCliente, // Substitua pelo campo correto
+            phoneNumber: Number(phoneNumber), // Garante que o telefone é do tipo número
+            paymentLink: paymentLink,
+          });
+        } else {
+          console.error(
+            "Não foi possível enviar a notificação: número de telefone não encontrado."
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Erro ao atualizar o documento, buscar dados do cliente ou enviar notificação:",
+          error
+        );
+        // Trate o erro adequadamente, talvez exibindo uma mensagem para o usuário
+      }
+    } else {
+      console.error("Pedido não encontrado.");
+      // Trate o caso em que o pedido não é encontrado
     }
   }
 
@@ -733,17 +743,18 @@ export default function GetOrdersComponent() {
                   >
                     <Popover>
                       <PopoverTrigger className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                        Link
+                        <LinkIcon size={16} />
                       </PopoverTrigger>
                       <PopoverContent>
-                        <div id="linkPayment" className="flex flex-col gap-2">
-                          <span>
-                            Disponibilize o link de pagamento do pedido:
-                          </span>
+                        <div
+                          id="linkPayment"
+                          className="flex flex-col gap-2 text-sm font-poppins"
+                        >
+                          <span>Link de pagamento do pedido:</span>
                           <Input
                             form="linkPayment"
                             type="text"
-                            placeholder="Link de pagamento"
+                            placeholder="Informe o link de pagamento"
                             onChange={(e) =>
                               setPaymentLink(e.target.value || null)
                             }
@@ -752,9 +763,9 @@ export default function GetOrdersComponent() {
                           <Button
                             type="button"
                             onClick={() => handleProvideLink(order.id || "")}
-                            className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded"
+                            className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded "
                           >
-                            Disponibilizar
+                            Enviar
                           </Button>
                         </div>
                       </PopoverContent>
@@ -799,7 +810,7 @@ export default function GetOrdersComponent() {
                                           {product.nome}
                                         </span>
                                       </div>
-                                      <span className="text-gray-50 text-sm bg-[#f7633d] px-3 py-1 rounded-full self-start font-semibold">
+                                      <span className="text-gray-50 text-text-xs bg-[#f7633d] px-3 py-1 rounded-full self-start font-semibold">
                                         {product.categoria}
                                       </span>
                                     </div>
@@ -971,30 +982,6 @@ export default function GetOrdersComponent() {
                       currency: "BRL",
                     })}
                   </td>
-                  {/*   <td className="border px-4 py-2 hidden md:table-cell">
-                    <div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                            Imprimir
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent>
-                          <div className="flex flex-col">
-                            <span>Escolha o tipo de impressão:</span>
-                            <div className="flex gap-2">
-                              <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                Imprimir A4
-                              </Button>
-                              <Button className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">
-                                Imprimir Térmica
-                              </Button>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </td> */}
                 </tr>
               ))}
             </>

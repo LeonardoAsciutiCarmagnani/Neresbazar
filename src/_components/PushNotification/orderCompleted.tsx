@@ -7,7 +7,7 @@ interface orderCompletedProps {
   phoneNumber: number;
 }
 
-export default function useOrderCompleted() {
+export default function UseOrderCompleted() {
   const handleOrderCompletedPush = async (props: orderCompletedProps) => {
     const { orderCode, customerName, phoneNumber } = props;
     try {

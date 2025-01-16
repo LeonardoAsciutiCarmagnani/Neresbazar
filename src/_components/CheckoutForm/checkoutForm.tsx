@@ -1,5 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { firestore } from "../../../firebaseConfig";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +16,8 @@ import axios from "axios";
 import apiBaseUrl from "@/lib/apiConfig";
 import type { Product } from "@/Contexts/cartContext";
 import { format } from "date-fns";
+import UseAdminOrderCompleted from "../PushNotification/adminOrderCompleted";
+import UseOrderCompleted from "../PushNotification/orderCompleted";
 
 interface UserData {
   cpf: string;
@@ -27,13 +36,13 @@ interface UserData {
 
 export type OrderProps = {
   IdClient?: string;
-  order_code: number;
+  order_code: string;
   status_order: number;
   created_at?: string;
   updated_at?: string;
   id?: string;
-  total?: number;
-  cliente: ClientData | null;
+  total: number;
+  cliente: ClientData;
   enderecoDeCobranca: EnderecoDeEntrega | null;
   enderecoDeEntrega: EnderecoDeEntrega;
   itens: {
@@ -79,7 +88,6 @@ const Checkout: React.FC = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const navigate = useNavigate();
   const { listProductsInCart } = useZustandContext();
-  const { toastError, toastSuccess } = ToastNotifications();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedUser");
@@ -148,7 +156,7 @@ const Checkout: React.FC = () => {
 
     return {
       IdClient: user.user_id,
-      order_code: 0,
+      order_code: "",
       status_order: 0,
       created_at: formattedDate,
       total: parseFloat(
@@ -214,31 +222,70 @@ const Checkout: React.FC = () => {
   };
 
   const handleFinishOrder = async () => {
+    const { toastSuccess, toastError } = ToastNotifications();
+    const sendAdminOrderCompletedPush = UseAdminOrderCompleted();
+    const sendOrderCompletedPush = UseOrderCompleted();
+
     if (!user) {
       toastError("Usuário não encontrado.");
       return;
     }
+
     const order = createOrderObject(user, listProductsInCart);
+
     try {
-      const response = await axios.post(
-        `${apiBaseUrl}/post-order`,
-        {
-          ...order,
+      const response = await axios.post(`${apiBaseUrl}/post-order`, order, {
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      });
 
       if (response.status === 201) {
         toastSuccess("Pedido realizado com sucesso.");
+
+        try {
+          if (!order.IdClient || typeof order.IdClient !== "string") {
+            toastError("ID do cliente inválido.");
+            return;
+          }
+
+          const clientRef = doc(firestore, "clients", order.IdClient);
+          const clientDoc = await getDoc(clientRef);
+
+          if (clientDoc.exists()) {
+            const phoneNumber = clientDoc.data().phoneNumber;
+
+            await Promise.all([
+              sendOrderCompletedPush({
+                orderCode: order.order_code,
+                customerName: order.cliente?.nomeDoCliente,
+                phoneNumber: Number(phoneNumber),
+              }),
+              sendAdminOrderCompletedPush({
+                orderCode: order.order_code,
+                totalValue: order.total,
+                phoneNumber: Number(phoneNumber),
+              }),
+            ]);
+            console.log("Notificações push enviadas com sucesso.");
+          } else {
+            console.error("Documento do cliente não encontrado.");
+            toastError(
+              "Erro ao enviar notificações: Documento do cliente não encontrado."
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Erro ao buscar dados do cliente ou enviar notificações:",
+            error
+          );
+          toastError("Erro ao enviar notificações.");
+        }
       } else {
         toastError("Erro ao realizar o pedido.");
       }
     } catch (error) {
-      console.log("Erro ao enviar o pedido, erro: ", error);
+      console.error("Erro ao enviar o pedido:", error);
       toastError("Erro ao enviar o pedido.");
     }
   };

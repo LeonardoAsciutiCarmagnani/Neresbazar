@@ -7,7 +7,7 @@ interface adminOrderCompletedProps {
   totalValue: number;
 }
 
-export default function useAdminOrderCompleted() {
+export default function UseAdminOrderCompleted() {
   const handleAdminOrderCompletedPush = async (
     props: adminOrderCompletedProps
   ) => {
